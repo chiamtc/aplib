@@ -1,6 +1,6 @@
 import {Observable} from "rxjs";
 import {subjects} from './M3dAudio';
-import {SUSPENDED, PLAYING, PAUSED, FINISHED,READY} from './constants';
+import {SUSPENDED, PLAYING, PAUSED, FINISHED, READY} from './constants';
 
 class WebAudio {
     static scriptBufferSize = 512;
@@ -108,9 +108,11 @@ class WebAudio {
     }
 
     decodeArrayBuffer(arrayBuffer) {
-        if (!this.offlineAudioContext) {
-            this.offlineAudioContext = this.getOfflineAudioContext(this.audioContext && this.audioContext.sampleRate ? this.audioContext.sampleRate : 44100);
-        }
+
+        /*  if (!this.offlineAudioContext) {
+              this.offlineAudioContext = this.getOfflineAudioContext(this.audioContext && this.audioContext.sampleRate ? this.audioContext.sampleRate : 44100);
+          }*/
+
         //method 1: callback fn
         /*   this.offlineAudioContext.decodeAudioData(arrayBuffer, data => {
                cb(data);
@@ -151,6 +153,7 @@ class WebAudio {
     createBufferSource() {
         this.disconnectBufferSource();
         this.source = this.audioContext.createBufferSource();
+        console.log(this.source);
         // TODO : add this.source.connect(xxNode) //xxNode = audio effects filter. refs:https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API
         //start end effects filter
         // this.source.connect(this.compressorNode);
@@ -170,7 +173,7 @@ class WebAudio {
         this.scriptNode.connect(this.audioContext.destination);
     }
 
-    createCompressorNode(){
+    createCompressorNode() {
         const compressor = this.audioContext.createDynamicsCompressor();
         compressor.threshold.value = -50;
         compressor.knee.value = 40;

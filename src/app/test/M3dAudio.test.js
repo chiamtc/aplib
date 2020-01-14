@@ -78,7 +78,6 @@ describe('M3dAudio test suite', () => {
             container_id: '#waveform-container',
             filters: listOfFilter,
             filterId: "F1",
-            width:600,
             height: 200,
             amplitude: 1,
             normalize: false,
