@@ -113,7 +113,7 @@ describe('M3dAudio test suite', () => {
         assert.instanceOf(m3daudio.array_buffer, ArrayBuffer);
         assert.equal(m3daudio.array_buffer.byteLength, 640044);
         //can't assert canvas drawing, might need to test it with cypress
-        // m3daudio.playPause()
+        m3daudio.playPause()
     });
 
     xit('play()', async() => {
