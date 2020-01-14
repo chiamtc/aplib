@@ -225,7 +225,6 @@ class M3dAudio {
         const nominalWidth = Math.round(this.getDuration() * this.minPxPerSec * this.pixelRatio);
         //mainwavewrapper width
         const parentWidth = this.wave_wrapper.getContainerWidth();
-
         //assign temporarily
         let width = nominalWidth;
         // always start at 0 after zooming for scrolling : issue redraw left part

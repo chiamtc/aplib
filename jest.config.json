@@ -1,4 +1,5 @@
 {
+  "coverageDirectory": "./src/app/test",
   "transform": {
     "^.+\\.(jsx|js)?$": "<rootDir>/node_modules/babel-jest"
   },
@@ -12,6 +13,9 @@
   ],
   "setupFiles": [
     "<rootDir>/src/app/test/setup.js"
+  ],
+  "testPathIgnorePatterns": [
+    "./cypress/integration"
   ],
   "testEnvironment": "jsdom"
 }

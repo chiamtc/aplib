@@ -3,3 +3,7 @@ build
 .idea
 .DS_Store
 src/app/constants/filterschema.js
+src/app/test/lcov-report
+src/app/test/*.xml
+src/app/test/*.json
+src/app/test/*.info

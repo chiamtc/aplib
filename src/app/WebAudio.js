@@ -304,6 +304,7 @@ class WebAudio {
      */
     setGain(value) {
         this.gainNode.gain.value = value;
+        console.log(this.source);
         value > 0 ? this.source.connect(this.gainNode) : this.source.disconnect();
     }
 
