@@ -58,9 +58,7 @@ class Spectrogram {
         this.height = m3dAudio.wave_wrapper.height;
         this.width = m3dAudio.wave_wrapper.width;
         this.maxCanvasWidth = this.m3dAudio.wave_wrapper.maxCanvasWidth;
-        this.maxCanvasElementWidth =
-            this.drawer.maxCanvasElementWidth ||
-            Math.round(this.maxCanvasWidth / this.pixelRatio);
+        this.maxCanvasElementWidth = this.drawer.maxCanvasElementWidth || Math.round(this.maxCanvasWidth / this.pixelRatio);
         this.fill = true;
         this.scroll = true;
         this.drawer = null; //aka wrapper;
@@ -199,7 +197,7 @@ class Spectrogram {
                 const heightFactor = my.buffer ? 2 / my.buffer.numberOfChannels : 1;
                 let i;
                 let j;
-                for (i = 0; i < pixels.length; i++) {
+                for (i = 0; i < pixels.length; i++) { //O(n^2)
                     for (j = 0; j < pixels[i].length; j++) {
                         my.spectrogramCtx.beginPath();
                         my.spectrogramCtx.fillStyle = pixels[i][j];

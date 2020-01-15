@@ -8,7 +8,7 @@ export default class WaveCanvas {
         this.mainWave_ctx = null;
         this.progressWave_canvas = null;
         this.progressWave_ctx = null;
-        this.halfPixel = 0.5 / (window.devicePixelRatio || screen.deviceXDPI / screen.logicalXDPI);
+        this.halfPixel = 0.5;// / (window.devicePixelRatio || screen.deviceXDPI / screen.logicalXDPI);
     }
 
     init() {

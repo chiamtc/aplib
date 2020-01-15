@@ -75,7 +75,7 @@ class M3dAudio {
         this.fill = true;
         this.scroll = false;
         this.minPxPerSec = 20; //for zoom
-        this.pixelRatio = window.devicePixelRatio || screen.deviceXDPI / screen.logicalXDPI;
+        this.pixelRatio = 1; //hardcoded atm
         this.plugins = [];
         this.previousWidth = 0;
         this.responsive = false;
@@ -207,9 +207,7 @@ class M3dAudio {
     }
 
     changeFilter(newFilterId) {
-        if (this.web_audio_state === PLAYING) {
-            this.web_audio.pause();
-        }
+        if (this.web_audio_state === PLAYING) this.web_audio.pause();
         if (newFilterId !== this.selectedFilter) {
             const newCoef = this.filters.find(f => f.filterID === newFilterId).coefficients;
             this.web_audio.applyFilter(newCoef);

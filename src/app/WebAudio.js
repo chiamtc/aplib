@@ -153,7 +153,6 @@ class WebAudio {
     createBufferSource() {
         this.disconnectBufferSource();
         this.source = this.audioContext.createBufferSource();
-        console.log(this.source);
         // TODO : add this.source.connect(xxNode) //xxNode = audio effects filter. refs:https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API
         //start end effects filter
         // this.source.connect(this.compressorNode);
@@ -224,7 +223,6 @@ class WebAudio {
 
     play(start, end) {
         if (!this.buffer) return;
-
         this.createBufferSource(); // need to re-create source on each playback
 
         this.source.buffer = this.filteredBuffer; //always use filteredBuffer to play
@@ -237,7 +235,6 @@ class WebAudio {
 
         this.source.loop = this.loop;
         this.source.start(0, start);
-
         if (this.audioContext.state === SUSPENDED) {
             this.audioContext.resume && this.audioContext.resume();
         }
@@ -348,7 +345,7 @@ class WebAudio {
         this.mergedPeaks[2 * (length - 1) + 1] = 0;
     }
 
-
+    //runtime : O(n^2)
     getPeaks(length, first, last) {
         if (this.peaks) return this.peaks; //not going to feed in peak data
         if (!this.buffer) return []; //usually not going to happen
@@ -411,6 +408,7 @@ class WebAudio {
     // TODO: ~~clone this.buffer and apply the coefs~~
     // TODO: ~~try using iirfilternode //done~~ 29/12/2019. Nevermind, iirfilternode class only has getFrequencyResponse() not the time-domain method Im looking for to plot graph. 30/12/2019
     // TODO: clean up ~~iirfilter~~ when pause and changes of filter //done
+    //runtime : O(n^2)
     applyFilter(coef) {
         /* //the iirfilternode from webaudioapi
         coef.map((f, i) => {
