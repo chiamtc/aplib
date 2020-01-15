@@ -11,7 +11,7 @@
     "prod": "cross-env webpack --mode production --config webpack.config.js",
     "test": "cross-env jest --config jest.config.json",
     "test:coverage": "cross-env jest --coverage --config jest.config.json",
-    "test:e2e:firefox": "mocha --recursive --timeout 10000 src/app/test/e2e/firefox/AudioPlayer.test.js"
+    "test:e2e:firefox": "jest --testTimeout=120000 src/app/test/e2e/firefox.test.js"
   },
   "devDependencies": {
     "@babel/cli": "^7.8.3",
@@ -46,7 +46,6 @@
     "jest-fetch-mock": "^3.0.1",
     "jsdom": "^16.0.0",
     "lodash": "^4.17.15",
-    "mocha": "^7.0.0",
     "rxjs": "^6.5.4",
     "selenium-webdriver": "^4.0.0-alpha.5",
     "validator": "^10.8.0",

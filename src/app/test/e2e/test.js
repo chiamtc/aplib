@@ -4,7 +4,7 @@ const {Builder, Key, By, until} = require('selenium-webdriver');
 describe('Checkout Google.com', function () {
     let driver;
     before(async function () {
-        driver = await new Builder().forBrowser('firefox').build();
+        driver = await new Builder().forBrowser('firefox', '46', 'MAC').build();
     });    // Next, we will write steps for our test.
     // For the element ID, you can find it by open the browser inspect feature.
 
