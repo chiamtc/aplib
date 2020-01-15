@@ -29,7 +29,7 @@ describe(`${testFileName} test suite`, () => {
 
     beforeEach(async () => await driver.get('http://localhost:9000'))
 
-    afterAll(() => driver && driver.quit());
+    // afterAll(() => driver && driver.quit());
 
     //have to do it this way to get spectrogram displayed and takescreenshot.
     it(`[${testFileName}-001] Load audio based on given url`, async (done) => {
@@ -43,11 +43,11 @@ describe(`${testFileName} test suite`, () => {
         }, 3000);
     });
 
-    it.only(`[${testFileName}-002] Plays decoded and filtered audio using default filter from firebase`, async () => {
+    it(`[${testFileName}-002] Plays decoded and filtered audio using default filter from firebase`, async () => {
         const playBtn = await driver.findElement(webdriver.By.id('play-btn'));
         await driver.wait(webdriver.until.elementIsEnabled(playBtn)).click();
 
-        const txtTime = await driver.findElement(webdriver.By.id('txt-time'));
+        const txtTime = await driver.findElement(webdriver.By.id('time-txt'));
 
         await driver.wait(webdriver.until.elementTextContains(txtTime, '5.'));
         const ssBuffer = await driver.takeScreenshot();
@@ -145,7 +145,7 @@ describe(`${testFileName} test suite`, () => {
                 setTimeout(async () => {
                     await playBtn.click();
                     assert.equal(await playBtn.getText(), 'pause');
-                    const txtTime = await driver.findElement(webdriver.By.id('txt-time'));
+                    const txtTime = await driver.findElement(webdriver.By.id('time-txt'));
 
                     await driver.wait(webdriver.until.elementTextContains(txtTime, '5.'));
                     const ssBuffer2 = await driver.takeScreenshot();
@@ -181,7 +181,7 @@ describe(`${testFileName} test suite`, () => {
                 setTimeout(async () => {
                     await playBtn.click();
                     assert.equal(await playBtn.getText(), 'pause');
-                    const txtTime = await driver.findElement(webdriver.By.id('txt-time'));
+                    const txtTime = await driver.findElement(webdriver.By.id('time-txt'));
 
                     await driver.wait(webdriver.until.elementTextContains(txtTime, '5.'));
                     const ssBuffer2 = await driver.takeScreenshot();
@@ -217,7 +217,7 @@ describe(`${testFileName} test suite`, () => {
                 setTimeout(async () => {
                     await playBtn.click();
                     assert.equal(await playBtn.getText(), 'pause');
-                    const txtTime = await driver.findElement(webdriver.By.id('txt-time'));
+                    const txtTime = await driver.findElement(webdriver.By.id('time-txt'));
 
                     await driver.wait(webdriver.until.elementTextContains(txtTime, '5.'));
                     const ssBuffer2 = await driver.takeScreenshot();
@@ -253,7 +253,7 @@ describe(`${testFileName} test suite`, () => {
                 setTimeout(async () => {
                     await playBtn.click();
                     assert.equal(await playBtn.getText(), 'pause');
-                    const txtTime = await driver.findElement(webdriver.By.id('txt-time'));
+                    const txtTime = await driver.findElement(webdriver.By.id('time-txt'));
 
                     await driver.wait(webdriver.until.elementTextContains(txtTime, '5.'));
                     const ssBuffer2 = await driver.takeScreenshot();
@@ -267,5 +267,70 @@ describe(`${testFileName} test suite`, () => {
             }, 3000)
         }, 3000)
     });
+
+
+    it(`[${testFileName}]-008 adjusts gain from 1 to 3 with step of 0.5 and play`, async (done) => {
+        const playBtn = await driver.findElement(webdriver.By.id('play-btn'));
+        const btnenabled = await driver.wait(webdriver.until.elementIsEnabled(playBtn));
+        if (btnenabled) {
+            setTimeout(async () => {
+                const gainInput = await driver.findElement(webdriver.By.id('gain-input'));
+                const ssBuffer = await driver.takeScreenshot();
+                await saveScreenshot(`${output}/${testFileName}-008-001`, ssBuffer);
+                for (let i = 0; i < 4; i++) {
+                    gainInput.sendKeys(webdriver.Key.ARROW_RIGHT);
+                }
+                await playBtn.click();
+                setTimeout(async () => {
+                    const ssBuffer2 = await driver.takeScreenshot();
+                    await saveScreenshot(`${output}/${testFileName}-008-002`, ssBuffer2);
+                    done();
+                }, 3000)
+            }, 3000)
+        }
+    });
+
+    it.only(`[${testFileName}-009] Plays, pauses and resumes decoded and filtered audio using default filter from firebase`, async (done) => {
+        const playBtn = await driver.findElement(webdriver.By.id('play-btn'));
+
+        setTimeout(async () => {
+            //play
+            await driver.wait(webdriver.until.elementIsEnabled(playBtn)).click();
+
+            assert.equal(await playBtn.getText(), 'pause');
+
+            const ssBuffer = await driver.takeScreenshot();
+            await saveScreenshot(`${output}/${testFileName}-009-001`, ssBuffer);
+
+
+            const txtTime = await driver.findElement(webdriver.By.id('time-txt'));
+
+            //pause
+            await driver.wait(webdriver.until.elementTextContains(txtTime, '5.'));
+            await playBtn.click();
+
+            assert.equal(await playBtn.getText(), 'resume')
+
+            const ssBuffer2 = await driver.takeScreenshot();
+            await saveScreenshot(`${output}/${testFileName}-009-002`, ssBuffer2);
+
+            //resume
+            await playBtn.click();
+            assert.equal(await playBtn.getText(), 'pause')
+            const ssBuffer3 = await driver.takeScreenshot();
+            await saveScreenshot(`${output}/${testFileName}-009-003`, ssBuffer3);
+            done();
+        })
+
+        // const ssBuffer = await driver.takeScreenshot();
+        // await saveScreenshot(`${output}/${testFileName}-002-001`, ssBuffer);
+
+        // await driver.wait(webdriver.until.elementTextContains(txtTime, '19.'));
+        // const ssBuffer2 = await driver.takeScreenshot();
+        // await saveScreenshot(`${output}/${testFileName}-002-002`, ssBuffer2);
+
+        // assert.equal(await playBtn.getText(), 'pause');
+    });
+
 
 });
