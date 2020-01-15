@@ -7,3 +7,5 @@ src/app/test/lcov-report
 src/app/test/*.xml
 src/app/test/*.json
 src/app/test/*.info
+
+src/app/test/e2e/firefox-test-results/*.png

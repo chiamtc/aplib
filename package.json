@@ -11,7 +11,7 @@
     "prod": "cross-env webpack --mode production --config webpack.config.js",
     "test": "cross-env jest --config jest.config.json",
     "test:coverage": "cross-env jest --coverage --config jest.config.json",
-    "test:e2e:firefox": "jest --testTimeout=120000 src/app/test/e2e/firefox.test.js"
+    "test:e2e:firefox": "jest --testTimeout=1200000 src/app/test/e2e/firefox.test.js"
   },
   "devDependencies": {
     "@babel/cli": "^7.8.3",
