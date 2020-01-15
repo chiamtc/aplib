@@ -29,7 +29,7 @@ describe(`${testFileName} test suite`, () => {
 
     beforeEach(async () => await driver.get('http://localhost:9000'))
 
-    // afterAll(() => driver && driver.quit());
+    afterAll(() => driver && driver.quit());
 
     //have to do it this way to get spectrogram displayed and takescreenshot.
     it(`[${testFileName}-001] Load audio based on given url`, async (done) => {
@@ -269,7 +269,7 @@ describe(`${testFileName} test suite`, () => {
     });
 
 
-    it(`[${testFileName}]-008 adjusts gain from 1 to 3 with step of 0.5 and play`, async (done) => {
+    it(`[${testFileName}-008] adjusts gain from 1 to 3 with step of 0.5 and play`, async (done) => {
         const playBtn = await driver.findElement(webdriver.By.id('play-btn'));
         const btnenabled = await driver.wait(webdriver.until.elementIsEnabled(playBtn));
         if (btnenabled) {
@@ -290,7 +290,7 @@ describe(`${testFileName} test suite`, () => {
         }
     });
 
-    it.only(`[${testFileName}-009] Plays, pauses and resumes decoded and filtered audio using default filter from firebase`, async (done) => {
+    it(`[${testFileName}-009] Plays, pauses and resumes decoded and filtered audio using default filter from firebase`, async (done) => {
         const playBtn = await driver.findElement(webdriver.By.id('play-btn'));
 
         setTimeout(async () => {
@@ -320,17 +320,45 @@ describe(`${testFileName} test suite`, () => {
             const ssBuffer3 = await driver.takeScreenshot();
             await saveScreenshot(`${output}/${testFileName}-009-003`, ssBuffer3);
             done();
-        })
-
-        // const ssBuffer = await driver.takeScreenshot();
-        // await saveScreenshot(`${output}/${testFileName}-002-001`, ssBuffer);
-
-        // await driver.wait(webdriver.until.elementTextContains(txtTime, '19.'));
-        // const ssBuffer2 = await driver.takeScreenshot();
-        // await saveScreenshot(`${output}/${testFileName}-002-002`, ssBuffer2);
-
-        // assert.equal(await playBtn.getText(), 'pause');
+        });
     });
 
+    it(`[${testFileName}-010] zoom 50px`, async (done) => {
+        setTimeout(async () => {
+            const ssBuffer = await driver.takeScreenshot();
+            await saveScreenshot(`${output}/${testFileName}-010-001`, ssBuffer);
+
+            setTimeout(async () => {
+                const zoomBtn50 = await driver.findElement(webdriver.By.id('zoom-btn-50')).click();
+                const zoomTxt = await driver.findElement(webdriver.By.id('zoom-txt'));
+                assert.equal(await zoomTxt.getText(), '50');
+
+                setTimeout(async () => {
+                    const ssBuffer = await driver.takeScreenshot();
+                    await saveScreenshot(`${output}/${testFileName}-010-002`, ssBuffer);
+                    done();
+                }, 3000)
+            }, 2000);
+        }, 3000);
+    });
+
+    it(`[${testFileName}-011] zoom 80px`, async (done) => {
+        setTimeout(async () => {
+            const ssBuffer = await driver.takeScreenshot();
+            await saveScreenshot(`${output}/${testFileName}-011-001`, ssBuffer);
+
+            setTimeout(async () => {
+                const zoomBtn50 = await driver.findElement(webdriver.By.id('zoom-btn-80')).click();
+                const zoomTxt = await driver.findElement(webdriver.By.id('zoom-txt'));
+                assert.equal(await zoomTxt.getText(), '80');
+
+                setTimeout(async () => {
+                    const ssBuffer = await driver.takeScreenshot();
+                    await saveScreenshot(`${output}/${testFileName}-011-002`, ssBuffer);
+                    done();
+                }, 4000)
+            }, 2000);
+        }, 3000);
+    });
 
 });
