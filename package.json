@@ -13,7 +13,8 @@
     "test:coverage": "cross-env jest --coverage --config jest.config.json",
     "test:e2e:firefox": "jest --testTimeout=1200000 src/app/test/e2e/firefox.test.js",
     "test:e2e:chrome": "jest --testTimeout=1200000 src/app/test/e2e/chrome.test.js",
-    "test:e2e:safari": "jest --testTimeout=1200000 src/app/test/e2e/safari.test.js"
+    "test:e2e:safari": "jest --testTimeout=1200000 src/app/test/e2e/safari.test.js",
+    "test:e2e:edge": "jest --testTimeout=1200000 src/app/test/e2e/edge.test.js"
   },
   "devDependencies": {
     "@babel/cli": "^7.8.3",
@@ -42,6 +43,7 @@
     "chromedriver": "^79.0.0",
     "cross-env": "^6.0.3",
     "dotenv": "^8.2.0",
+    "edgedriver": "^4.17134.1",
     "geckodriver": "^1.19.1",
     "jest": "^24.9.0",
     "jest-canvas-mock": "^2.2.0",
