@@ -1,16 +1,4 @@
-//learnt fromt https://itnext.io/automated-ui-testing-with-selenium-and-javascript-90bbe7ca13a3
-
-//TODO: coverage https://medium.com/@the1mills/front-end-javascript-test-coverage-with-istanbul-selenium-4b2be44e3e98
-/*
-~~steps maybe for CI machine~~
-1. download geckodriver from https://selenium.dev/selenium/docs/api/javascript/index.html
-2. place the executable files in /usr/local/bin
-3. node sl.js
-
-just install via npm and require it in the test
- */
-
-require('geckodriver');
+require('chromedriver');
 const webdriver = require('selenium-webdriver');
 const fs = require('fs');
 const {assert} = require('chai');
@@ -21,10 +9,10 @@ const testFileName = path.basename(__filename).split('.')[0].toUpperCase();
 const timeout = 3000;
 describe(`${testFileName} test suite`, () => {
     let driver;
-    let output = 'src/app/test/e2e/firefox-test-results';
+    let output = 'src/app/test/e2e/chrome-test-results';
     beforeAll(async () => {
         if (!fs.existsSync(output)) await fs.mkdirSync(output);
-        driver = await new webdriver.Builder().forBrowser('firefox').build();
+        driver = await new webdriver.Builder().forBrowser('chrome').build();
     });
 
     beforeEach(async () => await driver.get('http://localhost:9000'))
@@ -38,7 +26,7 @@ describe(`${testFileName} test suite`, () => {
         assert.equal(await playBtn.getText(), 'play');
         setTimeout(async () => {
             const ssBuffer = await driver.takeScreenshot();
-            await utils.utils.saveScreenshot(`${output}/${testFileName}-001`, ssBuffer)
+            await utils.saveScreenshot(`${output}/${testFileName}-001`, ssBuffer)
             done();
         }, timeout);
     });

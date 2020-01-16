@@ -11,7 +11,9 @@
     "prod": "cross-env webpack --mode production --config webpack.config.js",
     "test": "cross-env jest --config jest.config.json",
     "test:coverage": "cross-env jest --coverage --config jest.config.json",
-    "test:e2e:firefox": "jest --testTimeout=1200000 src/app/test/e2e/firefox.test.js"
+    "test:e2e:firefox": "jest --testTimeout=1200000 src/app/test/e2e/firefox.test.js",
+    "test:e2e:chrome": "jest --testTimeout=1200000 src/app/test/e2e/chrome.test.js",
+    "test:e2e:safari": "jest --testTimeout=1200000 src/app/test/e2e/safari.test.js"
   },
   "devDependencies": {
     "@babel/cli": "^7.8.3",
@@ -37,6 +39,7 @@
     "canvas-webworker": "0.0.3",
     "chai": "^4.2.0",
     "chroma-js": "^2.1.0",
+    "chromedriver": "^79.0.0",
     "cross-env": "^6.0.3",
     "dotenv": "^8.2.0",
     "geckodriver": "^1.19.1",

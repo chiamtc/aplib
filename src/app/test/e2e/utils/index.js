@@ -1,6 +1,7 @@
 const fs = require('fs');
 
-module.exports = async function (name, buffer) {
-    await fs.writeFileSync(`${name}.png`, buffer.replace(/^data:image\/png;base64,/, ''), 'base64');
-    console.log(`${name}.png saved`)
+exports.saveScreenshot = async function (name, buffer) {
+    const executionTime = new Date().getTime()/1000;
+    await fs.writeFileSync(`${name}_${executionTime}.png`, buffer.replace(/^data:image\/png;base64,/, ''), 'base64');
+    console.log(`${name}_${executionTime}.png saved`)
 };

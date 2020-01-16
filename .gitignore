@@ -9,3 +9,5 @@ src/app/test/*.json
 src/app/test/*.info
 
 src/app/test/e2e/firefox-test-results/*.png
+src/app/test/e2e/chrome-test-results/*.png
+src/app/test/e2e/safari-test-results/*.png
