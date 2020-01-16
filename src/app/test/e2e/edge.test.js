@@ -11,7 +11,7 @@ just install via npm and require it in the test
  */
 
 const edge = require('selenium-webdriver/edge');
-const edgedriver = require('edgedriver');
+require('edgedriver');
 const webdriver = require('selenium-webdriver');
 const fs = require('fs');
 const {assert} = require('chai');
@@ -25,19 +25,19 @@ describe(`${testFileName} test suite`, () => {
     let output = 'src/app/test/e2e/edge-test-results';
     beforeAll(async () => {
         if (!fs.existsSync(output)) await fs.mkdirSync(output);
-        // driver = await new webdriver.Builder().forBrowser('MicrosoftEdge').build();
+        driver = await new webdriver.Builder('node_modules/edgedriver/bin').forBrowser('edge').build();
         // let service = await new edge.ServiceBuilder(edgedriver.path);
         // let driver = await new Builder.forBrowser('MicrosoftEdge').setEdgeService(service).build();
 
         //no luck
-        const service = new edge.ServiceBuilder()
+      /*  const service = new edge.ServiceBuilder()
             .setPort(55555)
             .build();
 
         const options = new edge.Options();
         // configure browser options ...
 
-        driver = edge.Driver.createSession(options, service);
+        driver = edge.Driver.createSession(options, service);*/
 
         /*   const edge = require('selenium-webdriver/edge');
 

@@ -17,7 +17,7 @@ export default () => {
 }*/
 
 
-import {Canvas, Image, transfer} from 'canvas-webworker';
+// import {Canvas, Image, transfer} from 'canvas-webworker';
 
 export default () => {
     self.onmessage = e => {

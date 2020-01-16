@@ -1,10 +1,10 @@
-import M3dAudio from "../M3dAudio";
-import {UNREADY} from "../constants";
+import M3dAudio from "../../M3dAudio";
+import {UNREADY} from "../../constants";
 import {assert} from 'chai';
-import WaveWrapper from "../WaveWrapper";
-import WaveCanvas from "../WaveCanvas";
-import WebAudio from "../WebAudio";
-import {listOfFilter} from "../constants/filterschema";
+import WaveWrapper from "../../WaveWrapper";
+import WaveCanvas from "../../WaveCanvas";
+import WebAudio from "../../WebAudio";
+import {listOfFilter} from "../../constants/filterschema";
 import canvasSerializer from "jest-canvas-snapshot-serializer";
 
 expect.addSnapshotSerializer(canvasSerializer);

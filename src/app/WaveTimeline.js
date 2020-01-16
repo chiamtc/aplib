@@ -211,8 +211,6 @@ class WaveTimeline {
     }
 
     setFonts(fontSize, fontFamily) {
-        //not working :(
-        // this.timelineCanvas.getContext('2d').font = `${fontSize}px ${fontFamily}`;
         this.timelineCtx.font = `${fontSize}px ${fontFamily}`;
     }
 
