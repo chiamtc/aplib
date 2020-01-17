@@ -17,5 +17,6 @@ export {
     CHANGE_FILTER,
     TIMELINE,
     SPECTROGRAM,
-    MINIMAP
+    MINIMAP,
+    MAINWAVE
 } from './constants'

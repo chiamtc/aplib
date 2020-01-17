@@ -93,6 +93,7 @@ class Spectrogram {
         subjects.waveWrapper_state.subscribe((i) => {
             switch (i.type) {
                 case RESIZE:
+                    console.log('here?')
                     this.clearCanvas();
                     this.renderSpectrogram();
                     break;
@@ -144,7 +145,8 @@ class Spectrogram {
     createCanvas() {
         const canvasEle = document.createElement('canvas');
         this.spectrogramCanvas = this.wrapper.appendChild(canvasEle);
-        this.spectrogramCtx = this.spectrogramCanvas.getContext('2d', {desynchronized: true});
+        this.spectrogramCtx = this.spectrogramCanvas.getContext('2d', {preserveDrawingBuffer:true,desynchronized: true});
+        this.spectrogramCtx.imageSmoothingEnabled = true;
         style(this.spectrogramCanvas, {
             position: 'absolute',
             zIndex: 4,
@@ -213,6 +215,9 @@ class Spectrogram {
 
     onScroll = () => this.wrapper.scrollLeft = this.drawer.mainWave_wrapper.scrollLeft;
 
+    show = (caveat) => style(this.container, {display: 'block', ...caveat});
+
+    hide = (caveat) => style(this.container, {display: 'none', ...caveat});
 }
 
 /**

@@ -1,7 +1,6 @@
 import style from '../../util/Style';
 import {subjects} from "../../M3dAudio";
 import _ from 'lodash';
-import {ZOOM} from "../../constants";
 
 export default class Minimap_WaveWrapper {
 
@@ -15,8 +14,6 @@ export default class Minimap_WaveWrapper {
         this.width = 0;
 
         this.mainWave_wrapper = null;
-
-        this.progressWave_wrapper = null;
 
         this.normalize = params.normalize || false;
         this.lastPos = 0;
@@ -45,17 +42,17 @@ export default class Minimap_WaveWrapper {
     init() {
         this.createContainer();
         this.createMainWaveWrapper();
-       /* subjects.m3dAudio_control.subscribe((res) => {
-            switch (res.type) {
-                case ZOOM:
-                    const scrollbarHeight = this.height - this.progressWave_wrapper.scrollHeight;
-                    if (scrollbarHeight > 0) {
-                        style(this.container, {height: `${this.height}px`})
-                        style(this.mainWave_wrapper, {height: `${scrollbarHeight + this.height}px`})
-                    } else style(this.mainWave_wrapper, {height: `${this.height}px`});
-                    break;
-            }
-        });*/
+        /* subjects.m3dAudio_control.subscribe((res) => {
+             switch (res.type) {
+                 case ZOOM:
+                     const scrollbarHeight = this.height - this.progressWave_wrapper.scrollHeight;
+                     if (scrollbarHeight > 0) {
+                         style(this.container, {height: `${this.height}px`})
+                         style(this.mainWave_wrapper, {height: `${scrollbarHeight + this.height}px`})
+                     } else style(this.mainWave_wrapper, {height: `${this.height}px`});
+                     break;
+             }
+         });*/
     }
 
     createContainer() {
@@ -89,19 +86,19 @@ export default class Minimap_WaveWrapper {
 
     register_mainWrapper_events() {
         this.mainWave_wrapper.addEventListener('click', (e) => {
-           /* const scrollbarHeight =
-                this.mainWave_wrapper.offsetHeight - this.mainWave_wrapper.clientHeight;
-            if (scrollbarHeight !== 0) {
-                // scrollbar is visible.  Check if click was on it
-                const bbox = this.mainWave_wrapper.getBoundingClientRect();
-                if (e.clientY >= bbox.bottom - scrollbarHeight) {
-                    // ignore mousedown as it was on the scrollbar
-                    return;
-                }
-            }
-            // this.fireEvent('click', e, this.handleEvent(e)); //TODO: create a new global canvas subject and fire here
-            this.handleEvent_mainWave(e);*/
-           console.log('minimap click? ', e)
+            /* const scrollbarHeight =
+                 this.mainWave_wrapper.offsetHeight - this.mainWave_wrapper.clientHeight;
+             if (scrollbarHeight !== 0) {
+                 // scrollbar is visible.  Check if click was on it
+                 const bbox = this.mainWave_wrapper.getBoundingClientRect();
+                 if (e.clientY >= bbox.bottom - scrollbarHeight) {
+                     // ignore mousedown as it was on the scrollbar
+                     return;
+                 }
+             }
+             // this.fireEvent('click', e, this.handleEvent(e)); //TODO: create a new global canvas subject and fire here
+             this.handleEvent_mainWave(e);*/
+            console.log('minimap click? ', e)
         });
 
         this.mainWave_wrapper.addEventListener('dblclick', e => {
@@ -145,27 +142,12 @@ export default class Minimap_WaveWrapper {
 
         this.width = width;
 
-        if (this.fill || this.scroll) {
-            style(this.mainWave_wrapper, {width: ''});
-        } else {
-            style(this.mainWave_wrapper, {width: ~~(this.width / this.pixelRatio) + 'px'});
-        }
+        if (this.fill || this.scroll) style(this.mainWave_wrapper, {width: ''});
+        else style(this.mainWave_wrapper, {width: ~~(this.width / this.pixelRatio) + 'px'});
+
         this.updateSize();
         return true;
     }
-
- /*   renderProgressWave(progress) {
-        const minPxDelta = 1 / this.pixelRatio;
-        const pos = Math.round(progress * this.width) * minPxDelta;
-        if (pos < this.lastPos || pos - this.lastPos >= minPxDelta) {
-            this.lastPos = pos;
-            if (this.scroll && this.autoCenter) {
-                const newPos = ~~(this.mainWave_wrapper.scrollWidth * progress);
-                this.recenterOnPosition(newPos, false);
-            }
-            style(this.progressWave_wrapper, {width: `${pos}px`});
-        }
-    }*/
 
     prepareDraw(peaks, channelIndex, start, end, fn) {
         return requestAnimationFrame(() => {
@@ -216,9 +198,6 @@ export default class Minimap_WaveWrapper {
                     }
                     peaks = reflectedPeaks;
                 }
-
-                // if drawWave was called within ws.empty we don't pass a start and
-                // end and simply want a flat line
                 if (start !== undefined) this.drawLine(peaks, absmax, halfH, offsetY);
 
                 this.wave_canvas.mainWave_ctx.fillRect(start, this.height / 2, this.width, 1);
@@ -230,112 +209,25 @@ export default class Minimap_WaveWrapper {
         this.wave_canvas.drawLine(peaks, absmax, halfH, offsetY);
     }
 
-   /* recenter(percent) {
-        const position = this.mainWave_wrapper.scrollWidth * percent;
-        this.recenterOnPosition(position, true);
-    }
-
-    recenterOnPosition(position, immediate) {
-        const scrollLeft = this.mainWave_wrapper.scrollLeft;
-        //if canvas is zoomed to certain px.
-        // scrollLeft is updated while playing
-        // clientWidth is constant 600px
-        // scrollWidth is the width after being zoomed
-        const half = ~~(this.mainWave_wrapper.clientWidth / 2); //300
-        const maxScroll = this.mainWave_wrapper.scrollWidth - this.mainWave_wrapper.clientWidth; //maximum value to scroll aka, the end usually
-        let target = position - half;
-        let offset = target - scrollLeft;
-
-        if (maxScroll == 0) return;
-
-        // if the cursor is currently visible... //not executed if I dont set immediate
-        if (!immediate && -half <= offset && offset < half) {
-            // set rate at which waveform is centered
-            let rate = 5; //tweakable
-
-            // make rate depend on width of view and length of waveform
-            rate /= half;
-            rate *= maxScroll;
-
-            offset = Math.max(-rate, Math.min(rate, offset));
-            target = scrollLeft + offset;
-        }
-
-        // limit target to valid range (0 to maxScroll)
-        target = Math.max(0, Math.min(maxScroll, target));
-        // no use attempting to scroll if we're not moving
-        if (target != scrollLeft) {
-            this.mainWave_wrapper.scrollLeft = target;
-        }
-    }*/
-
     //this function adds initialised canvases from m3daudio to this class so that it could update dimension of canvases in updateSize()
     //reasons 1. one wrapper can have multiple canvases 2. canvas' job is to clear and draw lines nothing to do with wrapper's updating size. 3. wrapper updates size followed by canvases 4. most properties used to update canvases size is in wrapper class
     addCanvases(waveCanvas) {
         this.wave_canvas = waveCanvas;
         this.mainWave_wrapper.appendChild(waveCanvas.mainWave_canvas);
-        // this.progressWave_wrapper.appendChild(waveCanvas.progressWave_canvas);
-        //only allows user to set canvas background
         this.setCanvasStyles()
     }
 
     setContextStyles() {
-        //ctx
-        this.wave_canvas.setCtxWaveFillStyles(this.mainWaveStyle)// this.progressWaveStyle);
+        this.wave_canvas.setCtxWaveFillStyles(this.mainWaveStyle)
     }
 
     setCanvasStyles() {
-        //canvas
-        this.wave_canvas.setCanvasWaveBgStyles(this.mainWaveStyle)//this.progressWaveStyle);
+        this.wave_canvas.setCanvasWaveBgStyles(this.mainWaveStyle)
     }
 
     updateSize() {
-        //used to be like this if we want to set overlap.
         const elementWidth = Math.round(this.width / this.pixelRatio);
         const totalWidth = Math.round(this.width / this.pixelRatio); //TODO: this.width not this.getWidth()
         this.wave_canvas.updateDimensions(elementWidth, totalWidth, this.width, this.height);
-        // style(this.progressWave_wrapper, {display: 'block'});
     }
-
-    /*addCursor() {
-        style(this.progressWave_wrapper, {
-            zIndex: 4,
-            borderRightWidth: this.cursorStyle.borderRightWidth,
-            borderRightColor: this.cursorStyle.borderRightColor
-        });
-    }*/
-
- /*   createProgressWaveWrapper() {
-        const wrapper = document.createElement('progresswave');
-        style(wrapper, {
-            position: 'absolute',
-            zIndex: 1,
-            left: 0,
-            top: 0,
-            bottom: 0,
-            overflow: 'hidden',
-            width: '0',
-            display: 'none',
-            boxSizing: 'border-box',
-            borderRightStyle: 'solid',
-            pointerEvents: 'none'
-        });
-        //append progress wave onto mainWave_wrapper so that it doesn't clip outside of mainwave_wrapper since we're going to add backgroudncolor
-        //reason: position absolute;
-        /!**
-         * if we append using this.container. | = progresswave, l = mainwave
-         *          |
-         *    ______|_____
-         *   l      |     l
-         *   l______|_____l
-         *          |
-         *
-         * if we append using this.mainWave_wrapper
-         *
-         *    ____________
-         *   l      |     l
-         *   l______|_____l
-         *!/
-        this.progressWave_wrapper = this.mainWave_wrapper.appendChild(wrapper);
-    }*/
 }

@@ -30,7 +30,7 @@ export default class WaveWrapper {
 
         this.mainWaveStyle = params.mainWaveStyle;
         this.progressWaveStyle = params.progressWaveStyle;
-        this.cursorStyle = params.cursorStyle
+        this.cursorStyle = params.cursorStyle;
     }
 
     /**
@@ -340,5 +340,14 @@ export default class WaveWrapper {
          *   l______|_____l
          */
         this.progressWave_wrapper = this.mainWave_wrapper.appendChild(wrapper);
+    }
+
+    show = () => {
+        // style(this.mainWave_wrapper, {display: 'block'});
+    };
+
+    hide = () => {
+        this.wave_canvas.clearWave()
+        // style(this.mainWave_wrapper, {display: 'none'});
     }
 }

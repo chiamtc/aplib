@@ -27,7 +27,8 @@ export default class WaveCanvas {
             height: '100%',
             pointerEvents: 'none'
         });
-        this.mainWave_ctx = mainWave_canvas.getContext('2d', {desynchronized: true});
+        this.mainWave_ctx = mainWave_canvas.getContext('2d', {preserveDrawingBuffer:true,desynchronized: true});
+        this.mainWave_ctx.imageSmoothingEnabled = true;
         this.mainWave_canvas = mainWave_canvas;
     }
 
@@ -40,7 +41,8 @@ export default class WaveCanvas {
             bottom: 0,
             height: '100%',
         });
-        this.progressWave_ctx = progressWave_canvas.getContext('2d', {desynchronized: true});
+        this.progressWave_ctx = progressWave_canvas.getContext('2d', {preserveDrawingBuffer:true,desynchronized: true});
+        this.progressWave_ctx.imageSmoothingEnabled = true;
         this.progressWave_canvas = progressWave_canvas;
     }
 

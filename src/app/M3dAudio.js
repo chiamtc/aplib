@@ -7,7 +7,19 @@ import WaveTimeline from "./components/Timeline/WaveTimeline";
 import {debounceTime} from 'rxjs/operators'
 import {fromEvent} from 'rxjs';
 import Spectrogram from "./components/Spectrogram/Spectrogram";
-import {READY, CLICK, RESIZE, UNREADY, TIMELINE, SPECTROGRAM, MINIMAP,ZOOM, PLAYING, CHANGE_FILTER} from "./constants";
+import {
+    READY,
+    CLICK,
+    RESIZE,
+    UNREADY,
+    TIMELINE,
+    SPECTROGRAM,
+    MAINWAVE,
+    MINIMAP,
+    ZOOM,
+    PLAYING,
+    CHANGE_FILTER
+} from "./constants";
 import Minimap_WaveWrapper from "./components/Minimap/Minimap_WaveWrapper";
 import Minimap_WaveCanvas from "./components/Minimap/Minimap_WaveCanvas";
 
@@ -79,9 +91,11 @@ class M3dAudio {
         this.scroll = false;
         this.minPxPerSec = 20; //for zoom
         this.pixelRatio = 1; //hardcoded atm
-        this.plugins = [];
+        this.plugins = new Map();
+        this.pluginsParam = [];
         this.previousWidth = 0;
         this.responsive = false;
+        this.mainWave_visibility = true;
     }
 
     create(params) {
@@ -96,7 +110,7 @@ class M3dAudio {
         //set m3daudio properties. url param is passed via a function call, im not setting it unless we want to cache eagerly and store it in indexedDB on client's pc
         this.filters = params.filters;
         this.defaultFilter = params.filterId; //filterId recorded from mobile app
-        this.plugins = params.plugins;
+        this.pluginsParam = params.plugins;
         this.responsive = params.responsive;
         this.minZoom = params.minZoom;
         this.maxZoom = params.maxZoom;
@@ -126,6 +140,7 @@ class M3dAudio {
         this.web_audio.init();//web_audio:WebAudio
         this.wave_wrapper.init();//wave_wrapper:HTMLElement
         this.wave_canvas.init();//wave_canvas:Canvas
+        this.plugins.set(MAINWAVE, this.wave_wrapper);
     }
 
     //listeners
@@ -173,18 +188,20 @@ class M3dAudio {
     }
 
     createPlugins() {
-        this.plugins.map((plugin) => {
+        this.pluginsParam.map((plugin) => {
             switch (plugin.type) {
                 case TIMELINE:
                     const t = new WaveTimeline(plugin.params, this);
                     t.init();
+                    this.plugins.set(TIMELINE, t);
                     break;
                 case SPECTROGRAM:
                     const p = new Spectrogram(plugin.params, this);
                     p.init();
+                    this.plugins.set(SPECTROGRAM, p);
                     break;
                 case MINIMAP:
-                    const m_wave = new Minimap_WaveWrapper({
+                    const mini_wave = new Minimap_WaveWrapper({
                         container_id: plugin.params.container_id,
                         height: plugin.params.height,
                         pixelRatio: this.pixelRatio,
@@ -194,48 +211,24 @@ class M3dAudio {
                         normalize: false,
                         mainWaveStyle: plugin.params.mainWaveStyle,
                     }, this);
-                    const m_canvas = new Minimap_WaveCanvas();
-                    m_wave.init();
-                    m_canvas.init();
-                    m_wave.addCanvases(m_canvas);
-                    //determine changing width
+                    const mini_canvas = new Minimap_WaveCanvas();
+                    mini_wave.init();
+                    mini_canvas.init();
+                    mini_wave.addCanvases(mini_canvas);
                     const nominalWidth = Math.round(this.getDuration() * this.minPxPerSec * this.pixelRatio);
-                    //mainwavewrapper width
-                    const parentWidth = m_wave.getContainerWidth();
-                    //assign temporarily
+                    const parentWidth = mini_wave.getContainerWidth();
                     let width = nominalWidth;
-                    // always start at 0 after zooming for scrolling : issue redraw left part
                     let start = 0;
-                    //determine whether parent or nominal width is bigger, if nominal width is bigger than parent width, resize;
                     let end = Math.max(start + parentWidth, width);
-                    // Fill container
                     if (this.fill && (!this.scroll || nominalWidth < parentWidth)) {
                         width = parentWidth;
                         start = 0;
                         end = width;
                     }
                     let peaks = this.web_audio.getPeaks(width, start, end);
-
-                    //this is drawPeaks in ws
-                    /**
-                     *  drawPeaks() {
-                 if (!this.setWidth(length)) { //setWidth() { ... updatesize() ...}
-                    this.clearWave();
-                }
-                this.params.barWidth ? this.drawBars(peaks, 0, start, end) : this.drawWave(peaks, 0, start, end);
-                   }
-                     */
-                    /**
-                     1. set wrapper width -
-                     2. updates canvas size based on wrapper's width -
-                     3. clear the canvas and draw again
-                     setWidth(){
-            updatesize() {... canvas.updateDimension() ...}
-         }
-                     */
-                    m_wave.setWidth(width);
-                    // this.wave_canvas.clearWave(); //always clear wave before drawing, not so efficient. Used to apply it, i commented it out to see the performance differences as of date 07/01/2020
-                    m_wave.drawWave(peaks, 0, start, end);
+                    mini_wave.setWidth(width);
+                    mini_wave.drawWave(peaks, 0, start, end);
+                    this.plugins.set(MINIMAP, mini_wave);
                     break;
             }
         });
@@ -275,6 +268,29 @@ class M3dAudio {
         }
     }
 
+    toggleVisibility = (components) => {
+        const hideComponent = this.plugins.get(components.hide);
+        if (hideComponent) {
+            const showComponent = this.plugins.get(components.show);
+            switch (components.show) {
+                case SPECTROGRAM:
+                    showComponent.show({top: `-${this.wave_wrapper.height}px`});
+                    hideComponent.hide();
+                    this.mainWave_visibility = false;
+                    break;
+                case MAINWAVE:
+                    if (components.show === MAINWAVE) this.drawBuffer();
+                    hideComponent.hide();
+                    this.mainWave_visibility = true;
+                    break;
+            }
+        } else {
+            this.drawBuffer();
+            this.plugins.get(SPECTROGRAM).show();
+            this.mainWave_visibility = true;
+        }
+    };
+
     drawBuffer() {
         //determine changing width
         const nominalWidth = Math.round(this.getDuration() * this.minPxPerSec * this.pixelRatio);
@@ -313,7 +329,7 @@ class M3dAudio {
          */
         this.wave_wrapper.setWidth(width);
         // this.wave_canvas.clearWave(); //always clear wave before drawing, not so efficient. Used to apply it, i commented it out to see the performance differences as of date 07/01/2020
-        this.wave_wrapper.drawWave(peaks, 0, start, end);
+        if (this.mainWave_visibility) this.wave_wrapper.drawWave(peaks, 0, start, end);
     }
 
     playPause() {

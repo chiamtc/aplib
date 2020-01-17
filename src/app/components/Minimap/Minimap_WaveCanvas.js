@@ -31,19 +31,6 @@ export default class Minimap_WaveCanvas {
         this.mainWave_canvas = mainWave_canvas;
     }
 
-    createProgressWaveWrapperCanvas() {
-        const progressWave_canvas = document.createElement('canvas');
-        style(progressWave_canvas, {
-            position: 'absolute',
-            left: 0,
-            top: 0,
-            bottom: 0,
-            height: '100%',
-        });
-        this.progressWave_ctx = progressWave_canvas.getContext('2d', {desynchronized: true});
-        this.progressWave_canvas = progressWave_canvas;
-    }
-
     updateDimensions(elementWidth, totalWidth, width, height) {
         this.start = this.mainWave_canvas.offsetLeft / totalWidth || 0;
         this.end = this.start + elementWidth / totalWidth;

@@ -22,6 +22,7 @@ export const ZOOM = 'zoom';
 export const CHANGE_FILTER = 'CHANGE_FILTER';
 
 //plugin
+export const MAINWAVE= 'mainwave';
 export const TIMELINE = 'timeline';
 export const SPECTROGRAM = 'spectrogram';
 export const MINIMAP = 'minimap';
