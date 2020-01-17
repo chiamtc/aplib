@@ -1,6 +1,6 @@
-import style from "./util/Style";
-import {subjects} from "./M3dAudio";
-import {ZOOM} from "./constants";
+import style from "../../util/Style";
+import {subjects} from "../../M3dAudio";
+import {ZOOM} from "../../constants";
 
 
 class WaveTimeline {
@@ -51,15 +51,15 @@ class WaveTimeline {
                 this.scroll = event.value.scroll;
                 this.clearTimeline();
                 this.redrawTimeline();
-                const scrolbarHeight = this.m3dAudio.wave_wrapper.height - this.m3dAudio.wave_wrapper.progressWave_wrapper.scrollHeight;
-                if (this.direction === 'bottom') {
-                    scrolbarHeight !== 0 ? style(this.container, {top: `-${this.height + scrolbarHeight}px`}) : style(this.container, {top: `-${this.height}px`})
-                }
             }
         });
         this.m3dAudio.wave_wrapper.mainWave_wrapper.addEventListener('scroll', this.onScroll);
         subjects.waveWrapper_state.subscribe((res) => {
             this.clearTimeline();
+            const scrollbarHeight = this.m3dAudio.wave_wrapper.height - this.m3dAudio.wave_wrapper.progressWave_wrapper.scrollHeight;
+            if (this.direction === 'bottom') {
+                scrollbarHeight !== 0 ? style(this.container, {top: `-${this.height + scrollbarHeight}px`}) : style(this.container, {top: `-${this.height}px`})
+            }
             this.redrawTimeline();
         });
     }
@@ -100,20 +100,20 @@ class WaveTimeline {
                 width: '100%',
             });
 
+            style(this.wrapper, {
+                display: 'block',
+                position: 'absolute',//'relative',
+                height: `${this.height}px`,
+            });
             switch (this.direction) {
                 case 'top':
-                    style(this.container, {top: `${this.height}px`});
+                    // style(this.container, {top: `${this.height}px`});
+                    // style(this.wrapper, {top: `0px`});
                     break;
                 case 'bottom':
                     style(this.container, {top: `-${this.height}px`});
                     break;
             }
-
-            style(this.wrapper, {
-                display: 'block',
-                position: 'relative',//'relative',
-                height: `${this.height}px`,
-            });
         }
 
         if (this.m3dAudio.fill || this.m3dAudio.scroll) {

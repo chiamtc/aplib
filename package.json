@@ -1,5 +1,5 @@
 {
-  "name": "@m3dicine/audio-player",
+  "name": "@m3dicine/audio",
   "version": "1.0.0",
   "license": "ISC",
   "main": "build/index.js",

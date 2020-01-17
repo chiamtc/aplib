@@ -3,11 +3,14 @@ import WaveWrapper from './WaveWrapper';
 import WaveCanvas from './WaveCanvas';
 import HttpFetch from "./util/HttpFetch";
 import {Subject} from "rxjs";
-import WaveTimeline from "./WaveTimeline";
+import WaveTimeline from "./components/Timeline/WaveTimeline";
 import {debounceTime} from 'rxjs/operators'
 import {fromEvent} from 'rxjs';
-import Spectrogram from "./Spectrogram";
-import {READY, CLICK, RESIZE, UNREADY, TIMELINE, SPECTROGRAM, ZOOM, PLAYING, CHANGE_FILTER} from "./constants";
+import Spectrogram from "./components/Spectrogram/Spectrogram";
+import {READY, CLICK, RESIZE, UNREADY, TIMELINE, SPECTROGRAM, MINIMAP,ZOOM, PLAYING, CHANGE_FILTER} from "./constants";
+import Minimap_WaveWrapper from "./components/Minimap/Minimap_WaveWrapper";
+import Minimap_WaveCanvas from "./components/Minimap/Minimap_WaveCanvas";
+
 export const subjects = {
     /**
      * @title m3dAudio_state
@@ -130,7 +133,7 @@ class M3dAudio {
         subjects.webAudio_state.subscribe((i) => {
             this.web_audio_state = i;
             if (i === READY) { //make it to switch statement if there's other mechanism other than 'ready'
-                setTimeout(()=> this.createPlugins(), 0); //create plugin when webaudiostate is ready;
+                setTimeout(() => this.createPlugins(), 0); //create plugin when webaudiostate is ready;
             }
             subjects.m3dAudio_state.next(i);
         });
@@ -179,6 +182,60 @@ class M3dAudio {
                 case SPECTROGRAM:
                     const p = new Spectrogram(plugin.params, this);
                     p.init();
+                    break;
+                case MINIMAP:
+                    const m_wave = new Minimap_WaveWrapper({
+                        container_id: plugin.params.container_id,
+                        height: plugin.params.height,
+                        pixelRatio: this.pixelRatio,
+                        amplitude: plugin.params.amplitude,
+                        fill: this.fill,
+                        scroll: this.scroll,
+                        normalize: false,
+                        mainWaveStyle: plugin.params.mainWaveStyle,
+                    }, this);
+                    const m_canvas = new Minimap_WaveCanvas();
+                    m_wave.init();
+                    m_canvas.init();
+                    m_wave.addCanvases(m_canvas);
+                    //determine changing width
+                    const nominalWidth = Math.round(this.getDuration() * this.minPxPerSec * this.pixelRatio);
+                    //mainwavewrapper width
+                    const parentWidth = m_wave.getContainerWidth();
+                    //assign temporarily
+                    let width = nominalWidth;
+                    // always start at 0 after zooming for scrolling : issue redraw left part
+                    let start = 0;
+                    //determine whether parent or nominal width is bigger, if nominal width is bigger than parent width, resize;
+                    let end = Math.max(start + parentWidth, width);
+                    // Fill container
+                    if (this.fill && (!this.scroll || nominalWidth < parentWidth)) {
+                        width = parentWidth;
+                        start = 0;
+                        end = width;
+                    }
+                    let peaks = this.web_audio.getPeaks(width, start, end);
+
+                    //this is drawPeaks in ws
+                    /**
+                     *  drawPeaks() {
+                 if (!this.setWidth(length)) { //setWidth() { ... updatesize() ...}
+                    this.clearWave();
+                }
+                this.params.barWidth ? this.drawBars(peaks, 0, start, end) : this.drawWave(peaks, 0, start, end);
+                   }
+                     */
+                    /**
+                     1. set wrapper width -
+                     2. updates canvas size based on wrapper's width -
+                     3. clear the canvas and draw again
+                     setWidth(){
+            updatesize() {... canvas.updateDimension() ...}
+         }
+                     */
+                    m_wave.setWidth(width);
+                    // this.wave_canvas.clearWave(); //always clear wave before drawing, not so efficient. Used to apply it, i commented it out to see the performance differences as of date 07/01/2020
+                    m_wave.drawWave(peaks, 0, start, end);
                     break;
             }
         });
@@ -300,7 +357,7 @@ class M3dAudio {
     }
 
     zoom(level) {
-        console.log('level',level)
+        console.log('level', level)
         if (!level) {
             // this.minPxPerSec = this.minPxPerSec;
             this.scroll = false;

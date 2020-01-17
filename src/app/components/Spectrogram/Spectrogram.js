@@ -1,7 +1,7 @@
-import {subjects} from "./M3dAudio";
-import worker from "./workers/worker.js";
-import WebWorker from "./workers/workerSetup";
-import FFT from './util/FFT'
+import {subjects} from "../../M3dAudio";
+import worker from "../../workers/worker.js";
+import WebWorker from "../../workers/workerSetup";
+import FFT from '../../util/FFT'
 /**
  * 1. create wrapper
  * 2. create canvas
@@ -18,8 +18,8 @@ import FFT from './util/FFT'
  * 7. x2 forloop to draw on canvas
  */
 
-import style from "./util/Style";
-import {CHANGE_FILTER, CLICK, RESIZE, ZOOM} from "./constants";
+import style from "../../util/Style";
+import {CHANGE_FILTER, CLICK, RESIZE, ZOOM} from "../../constants";
 
 //TODO: read fft topic
 // https://dsp.stackexchange.com/questions/42428/understanding-overlapping-in-stft
@@ -82,10 +82,10 @@ class Spectrogram {
                     this.renderSpectrogram();
                     break;
                 case ZOOM:
+                    // const scrollbarHeight = this.m3dAudio.wave_wrapper.height - this.m3dAudio.wave_wrapper.progressWave_wrapper.scrollHeight;
+                    // scrollbarHeight !== 0 ? style(this.container, {top: `-${this.height + scrollbarHeight}px`}) : style(this.container, {top: `-${this.height}px`});
                     this.clearCanvas();
                     this.renderSpectrogram();
-                    const scrolbarHeight = this.m3dAudio.wave_wrapper.height - this.m3dAudio.wave_wrapper.progressWave_wrapper.scrollHeight;
-                    scrolbarHeight !== 0 ? style(this.container, {top: `-${this.height + scrolbarHeight}px`}) : style(this.container, {top: `-${this.height}px`});
                     break;
             }
         });

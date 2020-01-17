@@ -1,9 +1,9 @@
-import style from './util/Style';
-import {subjects} from "./M3dAudio";
+import style from '../../util/Style';
+import {subjects} from "../../M3dAudio";
 import _ from 'lodash';
-import {ZOOM} from "./constants";
+import {ZOOM} from "../../constants";
 
-export default class WaveWrapper {
+export default class Minimap_WaveWrapper {
 
     constructor(params) {
         //container which is to hold wrapper and wrapper's subsequent elements
@@ -29,8 +29,6 @@ export default class WaveWrapper {
         this.maxCanvasWidth = params.maxCanvasWidth || 4000; //4k
 
         this.mainWaveStyle = params.mainWaveStyle;
-        this.progressWaveStyle = params.progressWaveStyle;
-        this.cursorStyle = params.cursorStyle
     }
 
     /**
@@ -47,9 +45,7 @@ export default class WaveWrapper {
     init() {
         this.createContainer();
         this.createMainWaveWrapper();
-        this.createProgressWaveWrapper();
-        this.addCursor();
-        subjects.m3dAudio_control.subscribe((res) => {
+       /* subjects.m3dAudio_control.subscribe((res) => {
             switch (res.type) {
                 case ZOOM:
                     const scrollbarHeight = this.height - this.progressWave_wrapper.scrollHeight;
@@ -59,7 +55,7 @@ export default class WaveWrapper {
                     } else style(this.mainWave_wrapper, {height: `${this.height}px`});
                     break;
             }
-        });
+        });*/
     }
 
     createContainer() {
@@ -71,7 +67,7 @@ export default class WaveWrapper {
     }
 
     createMainWaveWrapper() {
-        const wrapper = document.createElement('mainwave');
+        const wrapper = document.createElement('minimap');
         style(wrapper, {
             display: 'block',
             position: 'relative',
@@ -93,7 +89,7 @@ export default class WaveWrapper {
 
     register_mainWrapper_events() {
         this.mainWave_wrapper.addEventListener('click', (e) => {
-            const scrollbarHeight =
+           /* const scrollbarHeight =
                 this.mainWave_wrapper.offsetHeight - this.mainWave_wrapper.clientHeight;
             if (scrollbarHeight !== 0) {
                 // scrollbar is visible.  Check if click was on it
@@ -104,7 +100,8 @@ export default class WaveWrapper {
                 }
             }
             // this.fireEvent('click', e, this.handleEvent(e)); //TODO: create a new global canvas subject and fire here
-            this.handleEvent_mainWave(e);
+            this.handleEvent_mainWave(e);*/
+           console.log('minimap click? ', e)
         });
 
         this.mainWave_wrapper.addEventListener('dblclick', e => {
@@ -157,7 +154,7 @@ export default class WaveWrapper {
         return true;
     }
 
-    renderProgressWave(progress) {
+ /*   renderProgressWave(progress) {
         const minPxDelta = 1 / this.pixelRatio;
         const pos = Math.round(progress * this.width) * minPxDelta;
         if (pos < this.lastPos || pos - this.lastPos >= minPxDelta) {
@@ -168,7 +165,7 @@ export default class WaveWrapper {
             }
             style(this.progressWave_wrapper, {width: `${pos}px`});
         }
-    }
+    }*/
 
     prepareDraw(peaks, channelIndex, start, end, fn) {
         return requestAnimationFrame(() => {
@@ -233,7 +230,7 @@ export default class WaveWrapper {
         this.wave_canvas.drawLine(peaks, absmax, halfH, offsetY);
     }
 
-    recenter(percent) {
+   /* recenter(percent) {
         const position = this.mainWave_wrapper.scrollWidth * percent;
         this.recenterOnPosition(position, true);
     }
@@ -270,26 +267,26 @@ export default class WaveWrapper {
         if (target != scrollLeft) {
             this.mainWave_wrapper.scrollLeft = target;
         }
-    }
+    }*/
 
     //this function adds initialised canvases from m3daudio to this class so that it could update dimension of canvases in updateSize()
     //reasons 1. one wrapper can have multiple canvases 2. canvas' job is to clear and draw lines nothing to do with wrapper's updating size. 3. wrapper updates size followed by canvases 4. most properties used to update canvases size is in wrapper class
     addCanvases(waveCanvas) {
         this.wave_canvas = waveCanvas;
         this.mainWave_wrapper.appendChild(waveCanvas.mainWave_canvas);
-        this.progressWave_wrapper.appendChild(waveCanvas.progressWave_canvas);
+        // this.progressWave_wrapper.appendChild(waveCanvas.progressWave_canvas);
         //only allows user to set canvas background
         this.setCanvasStyles()
     }
 
     setContextStyles() {
         //ctx
-        this.wave_canvas.setCtxWaveFillStyles(this.mainWaveStyle, this.progressWaveStyle);
+        this.wave_canvas.setCtxWaveFillStyles(this.mainWaveStyle)// this.progressWaveStyle);
     }
 
     setCanvasStyles() {
         //canvas
-        this.wave_canvas.setCanvasWaveBgStyles(this.mainWaveStyle, this.progressWaveStyle);
+        this.wave_canvas.setCanvasWaveBgStyles(this.mainWaveStyle)//this.progressWaveStyle);
     }
 
     updateSize() {
@@ -297,18 +294,18 @@ export default class WaveWrapper {
         const elementWidth = Math.round(this.width / this.pixelRatio);
         const totalWidth = Math.round(this.width / this.pixelRatio); //TODO: this.width not this.getWidth()
         this.wave_canvas.updateDimensions(elementWidth, totalWidth, this.width, this.height);
-        style(this.progressWave_wrapper, {display: 'block'});
+        // style(this.progressWave_wrapper, {display: 'block'});
     }
 
-    addCursor() {
+    /*addCursor() {
         style(this.progressWave_wrapper, {
             zIndex: 4,
             borderRightWidth: this.cursorStyle.borderRightWidth,
             borderRightColor: this.cursorStyle.borderRightColor
         });
-    }
+    }*/
 
-    createProgressWaveWrapper() {
+ /*   createProgressWaveWrapper() {
         const wrapper = document.createElement('progresswave');
         style(wrapper, {
             position: 'absolute',
@@ -325,7 +322,7 @@ export default class WaveWrapper {
         });
         //append progress wave onto mainWave_wrapper so that it doesn't clip outside of mainwave_wrapper since we're going to add backgroudncolor
         //reason: position absolute;
-        /**
+        /!**
          * if we append using this.container. | = progresswave, l = mainwave
          *          |
          *    ______|_____
@@ -338,7 +335,7 @@ export default class WaveWrapper {
          *    ____________
          *   l      |     l
          *   l______|_____l
-         */
+         *!/
         this.progressWave_wrapper = this.mainWave_wrapper.appendChild(wrapper);
-    }
+    }*/
 }

@@ -16,5 +16,6 @@ export {
     ZOOM,
     CHANGE_FILTER,
     TIMELINE,
-    SPECTROGRAM
+    SPECTROGRAM,
+    MINIMAP
 } from './constants'
