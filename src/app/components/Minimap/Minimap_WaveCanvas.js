@@ -13,7 +13,6 @@ export default class Minimap_WaveCanvas {
 
     init() {
         this.createMainWaveWrapperCanvas();
-        // this.createProgressWaveWrapperCanvas();
     }
 
     createMainWaveWrapperCanvas() {

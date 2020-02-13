@@ -93,7 +93,6 @@ class Spectrogram {
         subjects.waveWrapper_state.subscribe((i) => {
             switch (i.type) {
                 case RESIZE:
-                    console.log('here?')
                     this.clearCanvas();
                     this.renderSpectrogram();
                     break;

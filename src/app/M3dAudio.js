@@ -263,7 +263,6 @@ class M3dAudio {
             this.web_audio.applyFilter(newCoef);
             this.selectedFilter = newFilterId;
             this.drawBuffer();
-            console.log('filter changed');
             subjects.m3dAudio_control.next({type: CHANGE_FILTER, value: {}})
         }
     }
@@ -279,15 +278,15 @@ class M3dAudio {
                     this.mainWave_visibility = false;
                     break;
                 case MAINWAVE:
-                    if (components.show === MAINWAVE) this.drawBuffer();
                     hideComponent.hide();
                     this.mainWave_visibility = true;
+                    this.drawBuffer();
                     break;
             }
         } else {
-            this.drawBuffer();
             this.plugins.get(SPECTROGRAM).show();
             this.mainWave_visibility = true;
+            this.drawBuffer();
         }
     };
 
@@ -373,7 +372,6 @@ class M3dAudio {
     }
 
     zoom(level) {
-        console.log('level', level)
         if (!level) {
             // this.minPxPerSec = this.minPxPerSec;
             this.scroll = false;

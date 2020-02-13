@@ -86,7 +86,8 @@ export default class Minimap_WaveWrapper {
 
     register_mainWrapper_events() {
         this.mainWave_wrapper.addEventListener('click', (e) => {
-            /* const scrollbarHeight =
+            /* //functioanlity of seekTo on minimap
+            const scrollbarHeight =
                  this.mainWave_wrapper.offsetHeight - this.mainWave_wrapper.clientHeight;
              if (scrollbarHeight !== 0) {
                  // scrollbar is visible.  Check if click was on it
