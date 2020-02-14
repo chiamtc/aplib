@@ -27,7 +27,9 @@ TODO:
 - [x] webdriver (selenium) to test most of the use cases 
 - [ ] update test cases because of types of waveform visibility via drop-down menu
 - [ ] ~~indexeddb to store fft and decoded filtered audio arraybuffer based on sampleId (prolly on central instead of this repo)~~
-- [ ] picture-in-picture 
-- [ ] WASM audio decoding
-- [ ] WASM fft 
-- [ ] WASM drawing
+implement a flag to draw using data from indexeddb to skip fft process
+- [ ] picture-in-picture. some idea: https://googlechrome.github.io/samples/picture-in-picture/audio-playlist. the article: https://developers.google.com/web/updates/2018/10/watch-video-using-picture-in-picture#show_canvas_element_in_picture-in-picture_window
+- [ ] WASM audio decoding (better performance boost than web worker)
+- [ ] WASM fft  (better performance boost than web worker)
+- [ ] WASM drawing (better performance boost than web worker)
+

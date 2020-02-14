@@ -214,12 +214,16 @@ class WaveTimeline {
         this.timelineCtx.font = `${fontSize}px ${fontFamily}`;
     }
 
-    setFontWeight(fontWeight){
+    setFontWeight(fontWeight) {
         this.timelineCtx.font = `${fontWeight} ${this.fontSize}px ${this.fontFamily}`;
     }
 
-    setFontColor(fontColor){
+    setFontColor(fontColor) {
         this.timelineCtx.fillStyle = fontColor;
+    }
+
+    destroy = () => {
+        this.container.removeChild(this.wrapper);
     }
 }
 

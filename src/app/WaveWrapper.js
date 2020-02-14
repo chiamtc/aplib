@@ -6,6 +6,8 @@ import {ZOOM} from "./constants";
 export default class WaveWrapper {
 
     constructor(params) {
+        this.m3dAudio = params.m3dAudio;
+
         //container which is to hold wrapper and wrapper's subsequent elements
         this.container_id = params.container_id;
         this.container = null;
@@ -321,7 +323,7 @@ export default class WaveWrapper {
             display: 'none',
             boxSizing: 'border-box',
             borderRightStyle: 'solid',
-            pointerEvents: 'none'
+            pointerEvents: 'none',
         });
         //append progress wave onto mainWave_wrapper so that it doesn't clip outside of mainwave_wrapper since we're going to add backgroudncolor
         //reason: position absolute;
@@ -342,12 +344,10 @@ export default class WaveWrapper {
         this.progressWave_wrapper = this.mainWave_wrapper.appendChild(wrapper);
     }
 
-    show = () => {
-        // style(this.mainWave_wrapper, {display: 'block'});
-    };
+    destroy = () => this.container.removeChild(this.mainWave_wrapper);
 
-    hide = () => {
-        this.wave_canvas.clearWave()
-        // style(this.mainWave_wrapper, {display: 'none'});
-    }
+    show = () => this.m3dAudio.drawBuffer();
+
+    hide = () => this.wave_canvas.clearWave()
 }
+

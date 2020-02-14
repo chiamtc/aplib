@@ -1,5 +1,15 @@
 //beginner tutorial for web worker https://www.html5rocks.com/en/tutorials/workers/basics/#toc-enviornment-subworkers
 export default () => {
+    /*
+    structure of message
+    {
+        type: String,  //e.g. 'ww_xxx', prefix with ww = webworker
+        data: Object    //object which suits the implementation web workers
+    }
+
+    //currently, im using switch cases since we dont have a lot of operations. Might have to do it in es6 class
+    //maybe add one more operation - applying filter via biquad filter formula ?
+     */
     self.onmessage = e => { // eslint-disable-line no-restricted-globals
         if (!e) return;
         switch (e.data.type) {

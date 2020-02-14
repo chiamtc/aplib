@@ -451,6 +451,19 @@ class WebAudio {
         this.filteredBuffer = outputBuff; //set this.filteredbuffer
     }
 
+    destroy(){
+        if (!this.isPaused()) this.pause();
+        this.mergedPeaks = null;
+        this.splitPeaks = null;
+        this.peaks = null;
+        this.filteredBuffer = null;
+        this.buffer = null;
+        this.disconnectBufferSource();
+        this.gainNode.disconnect();
+        this.scriptNode.disconnect();
+
+    }
+
 }
 
 export default WebAudio
@@ -459,10 +472,6 @@ export default WebAudio
 // 2. audiocontext.decodeAudioDatat() -> AudioBuffer
 // 3. pass audioBuffer to AudioBufferSourceNode via audioContext
 // 4. then start() via source:AudioBufferSourceNode
-
-//TODO: get the understanding of general play, pause and stop state
-//TODO: get the understanding of drawing
-
 
 /** caller class
  * [util]fetch -> [util]arraybuffer ->
@@ -477,5 +486,3 @@ export default WebAudio
  */
 
 //https://chinmay.audio/iirfilter-workshop/ iirfilternode to check
-//b=[ 1, -1.2621407508850098, 0.8533923625946045, 1, -1.225411295890808, 0.612431526184082, 1, -1.7005388736724854, 0.7515528202056885, 1, -1.9520241022109985, 0.9528384208679199]
-//a=[0.1658635704779951, -0.17049753937028886, 0.004650211082637766, 0.6367747847741175, -0.655921592250425, 0.04247856434965213, 0.48852423462836897, 0.3494028802722561, 0.015667778677698384, 0.4142467303456515, -0.44225218786636344, 0.41445194667817475]

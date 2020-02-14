@@ -1,4 +1,4 @@
-//Source: wavesurfer.js and dsp.js
+//Source:  dsp.js
 const FFT = function (bufferSize, sampleRate, windowFunc, alpha) {
     this.bufferSize = bufferSize;
     this.sampleRate = sampleRate;

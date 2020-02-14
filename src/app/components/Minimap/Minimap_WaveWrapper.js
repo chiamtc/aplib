@@ -13,7 +13,7 @@ export default class Minimap_WaveWrapper {
         this.height = params.height;
         this.width = 0;
 
-        this.mainWave_wrapper = null;
+        this.miniWave_wrapper = null;
 
         this.normalize = params.normalize || false;
         this.lastPos = 0;
@@ -29,9 +29,9 @@ export default class Minimap_WaveWrapper {
     }
 
     /**
-     * //try to make mainWave_wrapper and progressWave_wrapper on the same level. Doable?
+     * //try to make miniWave_wrapper and progressWave_wrapper on the same level. Doable?
      *  - container
-     *      - mainWave_wrapper //main wave
+     *      - miniWave_wrapper //main wave
      *          - element1
      *          - progressWave_wrapper2 //progress wave
      *              - element2
@@ -41,15 +41,15 @@ export default class Minimap_WaveWrapper {
      */
     init() {
         this.createContainer();
-        this.createMainWaveWrapper();
+        this.createMiniWaveWrapper();
         /* subjects.m3dAudio_control.subscribe((res) => {
              switch (res.type) {
                  case ZOOM:
                      const scrollbarHeight = this.height - this.progressWave_wrapper.scrollHeight;
                      if (scrollbarHeight > 0) {
                          style(this.container, {height: `${this.height}px`})
-                         style(this.mainWave_wrapper, {height: `${scrollbarHeight + this.height}px`})
-                     } else style(this.mainWave_wrapper, {height: `${this.height}px`});
+                         style(this.miniWave_wrapper, {height: `${scrollbarHeight + this.height}px`})
+                     } else style(this.miniWave_wrapper, {height: `${this.height}px`});
                      break;
              }
          });*/
@@ -63,7 +63,7 @@ export default class Minimap_WaveWrapper {
         } else this.container = container;
     }
 
-    createMainWaveWrapper() {
+    createMiniWaveWrapper() {
         const wrapper = document.createElement('minimap');
         style(wrapper, {
             display: 'block',
@@ -80,18 +80,18 @@ export default class Minimap_WaveWrapper {
                 overflowY: 'hidden'
             });
         }
-        this.mainWave_wrapper = this.container.appendChild(wrapper);
-        this.register_mainWrapper_events();
+        this.miniWave_wrapper = this.container.appendChild(wrapper);
+        this.register_miniWrapper_events();
     }
 
-    register_mainWrapper_events() {
-        this.mainWave_wrapper.addEventListener('click', (e) => {
-            /* //functioanlity of seekTo on minimap
+    register_miniWrapper_events() {
+        this.miniWave_wrapper.addEventListener('click', (e) => {
+            /* //functionality of seekTo on minimap
             const scrollbarHeight =
-                 this.mainWave_wrapper.offsetHeight - this.mainWave_wrapper.clientHeight;
+                 this.miniWave_wrapper.offsetHeight - this.miniWave_wrapper.clientHeight;
              if (scrollbarHeight !== 0) {
                  // scrollbar is visible.  Check if click was on it
-                 const bbox = this.mainWave_wrapper.getBoundingClientRect();
+                 const bbox = this.miniWave_wrapper.getBoundingClientRect();
                  if (e.clientY >= bbox.bottom - scrollbarHeight) {
                      // ignore mousedown as it was on the scrollbar
                      return;
@@ -102,11 +102,11 @@ export default class Minimap_WaveWrapper {
             console.log('minimap click? ', e)
         });
 
-        this.mainWave_wrapper.addEventListener('dblclick', e => {
+        this.miniWave_wrapper.addEventListener('dblclick', e => {
             // this.fireEvent('dblclick', e, this.handleEvent(e));  //TODO: create a new global canvas subject and fire here
         });
 
-        /*   this.mainWave_wrapper.addEventListener('scroll', e => {
+        /*   this.miniWave_wrapper.addEventListener('scroll', e => {
                // this.handleEvent_mainWave(e);
                // this.fireEvent('scroll', e) //TODO: create a new global canvas subject and fire here
            });*/
@@ -117,16 +117,14 @@ export default class Minimap_WaveWrapper {
         const clientX = e.targetTouches
             ? e.targetTouches[0].clientX
             : e.clientX;
-        const bbox = this.mainWave_wrapper.getBoundingClientRect();
+        const bbox = this.miniWave_wrapper.getBoundingClientRect();
         const nominalWidth = this.width;
         const parentWidth = this.getContainerWidth();
         let progress;
         if (!this.fill && nominalWidth < parentWidth) {
             progress = (clientX - bbox.left) * (this.pixelRatio / nominalWidth) || 0;
             if (progress > 1) progress = 1;
-        } else {
-            progress = (clientX - bbox.left + this.mainWave_wrapper.scrollLeft) / this.mainWave_wrapper.scrollWidth || 0;
-        }
+        } else progress = (clientX - bbox.left + this.miniWave_wrapper.scrollLeft) / this.miniWave_wrapper.scrollWidth || 0;
         subjects.waveWrapper_state.next({type: e.type, value: progress});
     }
 
@@ -143,8 +141,8 @@ export default class Minimap_WaveWrapper {
 
         this.width = width;
 
-        if (this.fill || this.scroll) style(this.mainWave_wrapper, {width: ''});
-        else style(this.mainWave_wrapper, {width: ~~(this.width / this.pixelRatio) + 'px'});
+        if (this.fill || this.scroll) style(this.miniWave_wrapper, {width: ''});
+        else style(this.miniWave_wrapper, {width: ~~(this.width / this.pixelRatio) + 'px'});
 
         this.updateSize();
         return true;
@@ -214,7 +212,7 @@ export default class Minimap_WaveWrapper {
     //reasons 1. one wrapper can have multiple canvases 2. canvas' job is to clear and draw lines nothing to do with wrapper's updating size. 3. wrapper updates size followed by canvases 4. most properties used to update canvases size is in wrapper class
     addCanvases(waveCanvas) {
         this.wave_canvas = waveCanvas;
-        this.mainWave_wrapper.appendChild(waveCanvas.mainWave_canvas);
+        this.miniWave_wrapper.appendChild(waveCanvas.mainWave_canvas);
         this.setCanvasStyles()
     }
 
@@ -230,5 +228,9 @@ export default class Minimap_WaveWrapper {
         const elementWidth = Math.round(this.width / this.pixelRatio);
         const totalWidth = Math.round(this.width / this.pixelRatio); //TODO: this.width not this.getWidth()
         this.wave_canvas.updateDimensions(elementWidth, totalWidth, this.width, this.height);
+    }
+
+    destroy() {
+        this.container.removeChild(this.miniWave_wrapper);
     }
 }

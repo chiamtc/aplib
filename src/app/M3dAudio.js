@@ -121,6 +121,7 @@ class M3dAudio {
         //instantiations
         this.web_audio = new WebAudio();
         this.wave_wrapper = new WaveWrapper({
+            m3dAudio: this,
             container_id: params.container_id,
             height: params.height,
             pixelRatio: this.pixelRatio,
@@ -140,7 +141,7 @@ class M3dAudio {
         this.web_audio.init();//web_audio:WebAudio
         this.wave_wrapper.init();//wave_wrapper:HTMLElement
         this.wave_canvas.init();//wave_canvas:Canvas
-        this.plugins.set(MAINWAVE, this.wave_wrapper);
+        this.plugins.set(this.wave_wrapper.container_id, this.wave_wrapper);
     }
 
     //listeners
@@ -193,12 +194,12 @@ class M3dAudio {
                 case TIMELINE:
                     const t = new WaveTimeline(plugin.params, this);
                     t.init();
-                    this.plugins.set(TIMELINE, t);
+                    this.plugins.set(plugin.params.container_id, t);
                     break;
                 case SPECTROGRAM:
                     const p = new Spectrogram(plugin.params, this);
                     p.init();
-                    this.plugins.set(SPECTROGRAM, p);
+                    this.plugins.set(plugin.params.container_id, p);
                     break;
                 case MINIMAP:
                     const mini_wave = new Minimap_WaveWrapper({
@@ -228,7 +229,7 @@ class M3dAudio {
                     let peaks = this.web_audio.getPeaks(width, start, end);
                     mini_wave.setWidth(width);
                     mini_wave.drawWave(peaks, 0, start, end);
-                    this.plugins.set(MINIMAP, mini_wave);
+                    this.plugins.set(plugin.params.container_id, mini_wave);
                     break;
             }
         });
@@ -267,26 +268,17 @@ class M3dAudio {
         }
     }
 
-    toggleVisibility = (components) => {
-        const hideComponent = this.plugins.get(components.hide);
-        if (hideComponent) {
-            const showComponent = this.plugins.get(components.show);
-            switch (components.show) {
-                case SPECTROGRAM:
-                    showComponent.show({top: `-${this.wave_wrapper.height}px`});
-                    hideComponent.hide();
-                    this.mainWave_visibility = false;
-                    break;
-                case MAINWAVE:
-                    hideComponent.hide();
-                    this.mainWave_visibility = true;
-                    this.drawBuffer();
-                    break;
+    toggleVisibility = (showComp, filterComps) => {
+        if (showComp.toLowerCase() === 'all') filterComps.map((e) => this.plugins.get(e).show())
+        else {
+            const showComponent = this.plugins.get(showComp);
+            for (let i of filterComps) {
+                if (i === showComp) showComponent.show();
+                else {
+                    const hideComp = this.plugins.get(i);
+                    hideComp.hide();
+                }
             }
-        } else {
-            this.plugins.get(SPECTROGRAM).show();
-            this.mainWave_visibility = true;
-            this.drawBuffer();
         }
     };
 
@@ -328,7 +320,7 @@ class M3dAudio {
          */
         this.wave_wrapper.setWidth(width);
         // this.wave_canvas.clearWave(); //always clear wave before drawing, not so efficient. Used to apply it, i commented it out to see the performance differences as of date 07/01/2020
-        if (this.mainWave_visibility) this.wave_wrapper.drawWave(peaks, 0, start, end);
+        this.wave_wrapper.drawWave(peaks, 0, start, end);
     }
 
     playPause() {
@@ -404,6 +396,12 @@ class M3dAudio {
             const percent = this.web_audio.getPlayedPercents() * 100;
             cb({percent: percent.toFixed(2), ms: res.toFixed(2)});
         });
+    }
+
+    destroy() {
+        this.plugins.get(this.wave_wrapper.container_id).destroy();
+        this.pluginsParam.map((e) => this.plugins.get(e.params.container_id).destroy())
+        this.web_audio.destroy();
     }
 }
 

@@ -20,6 +20,7 @@ import FFT from '../../util/FFT'
 
 import style from "../../util/Style";
 import {CHANGE_FILTER, CLICK, RESIZE, ZOOM} from "../../constants";
+import isEmpty from 'lodash/isEmpty';
 
 //TODO: read fft topic
 // https://dsp.stackexchange.com/questions/42428/understanding-overlapping-in-stft
@@ -144,7 +145,10 @@ class Spectrogram {
     createCanvas() {
         const canvasEle = document.createElement('canvas');
         this.spectrogramCanvas = this.wrapper.appendChild(canvasEle);
-        this.spectrogramCtx = this.spectrogramCanvas.getContext('2d', {preserveDrawingBuffer:true,desynchronized: true});
+        this.spectrogramCtx = this.spectrogramCanvas.getContext('2d', {
+            preserveDrawingBuffer: true,
+            desynchronized: true
+        });
         this.spectrogramCtx.imageSmoothingEnabled = true;
         style(this.spectrogramCanvas, {
             position: 'absolute',
@@ -192,7 +196,50 @@ class Spectrogram {
                 spectrumGain: this.spectrumGain
             }
         });
+
         this.worker.onmessage = (event) => {
+            // console.log(window.indexedDB)
+            //  window.indexedDB = window.indexedDB; // || window.mozIndexedDB ||    window.webkitIndexedDB || window.msIndexedDB;
+
+            /*            var db;
+                        var request = window.indexedDB.open("newDatabase", 1);
+
+                        request.onerror = function(event) {
+                            console.log("error: ");
+                        };
+
+                        request.onsuccess = function(event) {
+                            db = request.result;
+                            console.log("success: "+ db);
+                        };
+
+                        request.onupgradeneeded = function(ibdevent) {
+                            var db = ibdevent.target.result;
+                            var objectStore = db.createObjectStore("employee", {keyPath: "id"});
+
+                            for (var i in employeeData) {
+                                objectStore.add(employeeData[i]);
+                            }*/
+
+
+            /*    var request = db.transaction(["employee"], "readwrite")
+                    .objectStore("employee")
+                    .add({ id: "00-03", name: "Kenny", age: 19, email: "kenny@planet.org" });
+
+                request.onsuccess = function(event) {
+                    alert("Kenny has been added to your database.");
+                };
+
+                request.onerror = function(event) {
+                    alert("Unable to add data\r\nKenny is aready exist in your database! ");
+                }*/
+            // }
+
+            //prefixes of window.IDB objects
+            /*  window.IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction;
+              window.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.msIDBKeyRange*/
+
+
             requestAnimationFrame(() => {
                 const pixels = event.data
                 const heightFactor = my.buffer ? 2 / my.buffer.numberOfChannels : 1;
@@ -214,9 +261,11 @@ class Spectrogram {
 
     onScroll = () => this.wrapper.scrollLeft = this.drawer.mainWave_wrapper.scrollLeft;
 
-    show = (caveat) => style(this.container, {display: 'block', ...caveat});
+    show = () => style(this.container, {display: 'block', top: `-${this.m3dAudio.wave_wrapper.height}px`}); //hard-coded top:{}
 
-    hide = (caveat) => style(this.container, {display: 'none', ...caveat});
+    hide = () => style(this.container, {display: 'none'});
+
+    destroy = () => this.container.removeChild(this.wrapper)
 }
 
 /**
