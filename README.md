@@ -1,21 +1,61 @@
-# aplib
+# audio player (ap)
 
-## Installation
+audio player
 
-`npm i @m3dicine/audio`
+workflow
+1. get .wav via url using fetch api
+2. decode audio using web audio api
+3. apply audio data (getChannelData(0) one channel only) with custom filter schema (should use webaudio api iirfilter)
+4. fft with configuration (hann algorithm by default) and resample fft frequency in web worker to avoid blocking main thread
+5. drawing data with chromajs on canvas
+6. plugins -> minimap, spectrogram, spectrogram frequency labels and timeline.
+
+All elements mentioned above follows in DOM structure
+
+```
+<xx>
+    <canvas></canvas>
+</xx>
+```
+
+E.g.
+
+```
+<mainwave>
+    <canvas></canvas>
+</mainwave>
+```
 
 
+Used in central
+
+```
+<div>
+    <timeline-top>
+        <canvas></canvas>
+    </timeline-top>
+    <mainwave>
+        <canvas></canvas>
+        <progresswave>
+            <canvas></canvas>
+        </progresswave>
+    </mainwave>
+    <spectrogram>
+        <spectrogram-frequency-label>
+            <canvas></canvas>
+        </spectrogram-frequency-label>
+        <canvas></canvas>
+    </spectrogram>
+    <timeline-bottom>
+        <canvas></canvas>
+    </timeline-bottom>
+
+</div>
+```
 ## Usage
 
 ##### too lazy to write it up.
 
-
-## Testing
-
-1. use `ap/` and spins up localhost:9000 or go to /workspace in @m3dicine/core and run `"make:playground:audioplayer"`  
-2. `npm run test:e2e:chrome / firefox / safari`
-3. ??
-4. checks `src/app/test/e2e/<browser>-test-results`
 
 TODO:
 - [x] util/ to use fetch api
