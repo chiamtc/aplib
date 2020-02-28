@@ -1,4 +1,4 @@
-export {default} from './M3dAudio';
+export default from './M3dAudio';
 export {subjects} from './M3dAudio';
 export {
     SUSPENDED,

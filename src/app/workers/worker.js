@@ -1,6 +1,7 @@
 //beginner tutorial for web worker https://www.html5rocks.com/en/tutorials/workers/basics/#toc-enviornment-subworkers
 export default () => {
     /*
+    TODO: https://www.sitepen.com/blog/using-webassembly-with-web-workers/
     structure of message
     {
         type: String,  //e.g. 'ww_xxx', prefix with ww = webworker
@@ -213,10 +214,7 @@ export default () => {
                 let currentOffset = 0;
 
                 while (currentOffset + fftSamples < channelOne.length) {
-                    const segment = channelOne.slice(
-                        currentOffset,
-                        currentOffset + fftSamples
-                    );
+                    const segment = channelOne.slice(currentOffset, currentOffset + fftSamples);
                     const spectrum = fft.calculateSpectrum(segment);
 
                     const array = new Uint8Array(fftSamples / 2);
@@ -232,7 +230,6 @@ export default () => {
             case 'ww_resample':
                 importScripts('https://cdn.jsdelivr.net/npm/chroma-js@2.1.0/chroma.min.js');
                 const {oldMatrix, resample_width, colorMap, spectrumGain} = e.data.data;
-
                 const chroma_colorMap = chroma.scale(colorMap);
                 const newMatrix = [];
                 const oldPiece = 1 / oldMatrix.length;
@@ -241,7 +238,6 @@ export default () => {
                 for (i = 0; i < resample_width; i++) {
                     const column = new Array(oldMatrix[0].length);
                     let j;
-
                     for (j = 0; j < oldMatrix.length; j++) {
                         const oldStart = j * oldPiece;
                         const oldEnd = oldStart + oldPiece;
@@ -265,7 +261,6 @@ export default () => {
                     const intColumn = new Array(oldMatrix[0].length);
                     const colorColumn = new Array(oldMatrix[0].length);
                     let m;
-
                     for (m = 0; m < oldMatrix[0].length; m++) {
                         intColumn[m] = column[m];
                         colorColumn[m] = chroma_colorMap(column[m] * spectrumGain).hex(); //prepares canvas colour for efficient actual drawing. Note: this array contains all hex code color
@@ -273,6 +268,21 @@ export default () => {
                     newMatrix.push(colorColumn);
                 }
                 postMessage(newMatrix);
+                break;
+            case 'ww_offscreen_spectrogram':
+                const {canvas, pixels, offscreenWidth, offScreenHeight} = e.data.data;
+                let ctx = canvas.getContext('2d');
+                ctx.width = offscreenWidth;
+                ctx.height = offScreenHeight;
+                for (let i = 0; i < pixels.length; i++) { //O(n^2)
+                    for (let j = 0; j < pixels[i].length; j++) {
+                        ctx.beginPath();
+                        ctx.fillStyle = pixels[i][j];
+                        ctx.fillRect(i, offScreenHeight - j , 1, 1);
+                        ctx.fill();
+                    }
+                }
+                postMessage('drawn')
                 break;
         }
     }

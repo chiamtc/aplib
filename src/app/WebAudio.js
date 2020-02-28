@@ -2,6 +2,12 @@ import {Observable} from "rxjs";
 import {subjects} from './M3dAudio';
 import {SUSPENDED, PLAYING, PAUSED, FINISHED, READY} from './constants';
 
+/*
+https://medium.com/@bryanjenningz/how-to-record-and-play-audio-in-javascript-faa1b2b3e49b
+to blob file , url
+
+ */
+
 class WebAudio {
     static scriptBufferSize = 512;
     stateBehaviors = {
@@ -401,6 +407,22 @@ class WebAudio {
         return this.mergedPeaks;
     }
 
+    rmsAmplitude() {
+        const buffer = this.buffer.getChannelData(0);
+        var rms = 0;
+        for (var i = 0; i < buffer.length; i++) {
+            rms += Math.abs(buffer[i]) * Math.abs(buffer[i]);
+        }
+        rms /= buffer.length;
+        rms = Math.sqrt(rms);
+        return rms
+    }
+
+    dbAmplitude() {
+        const rms = this.rmsAmplitude();
+        return 20 * Math.log10(rms);
+    }
+
     disconnectBufferSource() {
         if (this.source) this.source.disconnect();
     }
@@ -451,7 +473,7 @@ class WebAudio {
         this.filteredBuffer = outputBuff; //set this.filteredbuffer
     }
 
-    destroy(){
+    destroy() {
         if (!this.isPaused()) this.pause();
         this.mergedPeaks = null;
         this.splitPeaks = null;
@@ -461,7 +483,6 @@ class WebAudio {
         this.disconnectBufferSource();
         this.gainNode.disconnect();
         this.scriptNode.disconnect();
-
     }
 
 }

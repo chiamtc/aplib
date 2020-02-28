@@ -1,10 +1,12 @@
 import style from '../../util/Style';
 import {subjects} from "../../M3dAudio";
 import _ from 'lodash';
+import {RESIZE} from "../../constants";
 
 export default class Minimap_WaveWrapper {
 
     constructor(params) {
+        this.m3dAudio = params.m3dAudio;
         //container which is to hold wrapper and wrapper's subsequent elements
         this.container_id = params.container_id;
         this.container = null;
@@ -42,6 +44,13 @@ export default class Minimap_WaveWrapper {
     init() {
         this.createContainer();
         this.createMiniWaveWrapper();
+        subjects.waveWrapper_state.subscribe((i) => {
+            switch (i.type) {
+                case RESIZE:
+                    this.redrawMinimap();
+                    break;
+            }
+        });
         /* subjects.m3dAudio_control.subscribe((res) => {
              switch (res.type) {
                  case ZOOM:
@@ -99,7 +108,7 @@ export default class Minimap_WaveWrapper {
              }
              // this.fireEvent('click', e, this.handleEvent(e)); //TODO: create a new global canvas subject and fire here
              this.handleEvent_mainWave(e);*/
-            console.log('minimap click? ', e)
+            console.log('minimap current pointer ', e)
         });
 
         this.miniWave_wrapper.addEventListener('dblclick', e => {
@@ -110,6 +119,22 @@ export default class Minimap_WaveWrapper {
                // this.handleEvent_mainWave(e);
                // this.fireEvent('scroll', e) //TODO: create a new global canvas subject and fire here
            });*/
+    }
+
+    redrawMinimap() {
+        const nominalWidth = Math.round(this.m3dAudio.getDuration() * this.m3dAudio.minPxPerSec * this.m3dAudio.pixelRatio);
+        const parentWidth = this.getContainerWidth();
+        let width = nominalWidth;
+        let start = 0;
+        let end = Math.max(start + parentWidth, width);
+        if (this.m3dAudio.fill && (!this.m3dAudio.scroll || nominalWidth < parentWidth)) {
+            width = parentWidth;
+            start = 0;
+            end = width;
+        }
+        let peaks = this.m3dAudio.web_audio.getPeaks(width, start, end);
+        this.setWidth(width);
+        this.drawWave(peaks, 0, start, end);
     }
 
     handleEvent_mainWave(e) {

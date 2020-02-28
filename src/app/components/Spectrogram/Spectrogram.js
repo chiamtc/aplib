@@ -1,6 +1,4 @@
 import {subjects} from "../../M3dAudio";
-import worker from "../../workers/worker.js";
-import WebWorker from "../../workers/workerSetup";
 import FFT from '../../util/FFT'
 /**
  * 1. create wrapper
@@ -21,8 +19,18 @@ import FFT from '../../util/FFT'
 import style from "../../util/Style";
 import {CHANGE_FILTER, CLICK, RESIZE, ZOOM} from "../../constants";
 import isEmpty from 'lodash/isEmpty';
+import Spectrogram_FrequencyLabel from "./Spectrogram_FrequencyLabel/Spectrogram_FrequencyLabel";
+//useful repo
+//https://github.com/borismus/spectrogram
+// dsp.js
 
+/*
+https://github.com/rustwasm/wasm-bindgen/issues/1480 this guy used promise.all() and callback
+ */
 //TODO: read fft topic
+// spectrogram and PCG scientific paper: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1899182/ << uses STFT instead of FFT
+// https://academo.org/demos/spectrum-analyzer/ //great js program to check. it has linear and logarithmic freq scale
+// https://github.com/borismus/spectrogram //insanely good READ. logarithmic scale
 // https://dsp.stackexchange.com/questions/42428/understanding-overlapping-in-stft
 // https://dsp.stackexchange.com/questions/47448/window-periodoverlap-and-fft
 // OG fft + spectrogram code https://developer.mozilla.org/en-US/docs/Archive/Misc_top_level/Visualizing_Audio_Spectrum
@@ -35,8 +43,10 @@ import isEmpty from 'lodash/isEmpty';
 // https://github.com/a-vis/gl-spectrogram
 class Spectrogram {
     constructor(params, m3dAudio) {
+        this.wasm = params.wasmInstance;
         this.m3dAudio = m3dAudio;
         this.container_id = params.container_id;
+        this.canvas_id = `${this.container_id.split('#')[1]}-canvas`; //for wasm
         this.container = null;
         this.wrapper = null;
         if (!params.colorMap) {
@@ -64,17 +74,27 @@ class Spectrogram {
         this.scroll = true;
         this.drawer = null; //aka wrapper;
         this.web_audio = null; //aka web_audio
-        this.worker = null;
+        this.spectrogramFreqLabels = params.spectrogramFreqLabels;
+        this.offscreenCanvasSupport = false;
+        this.offscreenCanvas = null;
+        //TODO: have a feature detection class
+        try {
+            const c = document.createElement('canvas');
+            c.setAttribute('id', 'feature-detection-canvas');
+            c.transferControlToOffscreen().getContext('2d');
+            this.offscreenCanvasSupport = true;
+        } catch (e) {
+            this.offscreenCanvasSupport = false;
+        }
     }
 
     init() {
-        this.worker = new WebWorker(worker);
         this.setM3dAudioState();
         this.createContainer();
         this.createWrapper();
         this.createCanvas();
         this.renderSpectrogram();
-
+        this.createFreqLabels();
         this.m3dAudio.wave_wrapper.mainWave_wrapper.addEventListener('scroll', this.onScroll);
         subjects.m3dAudio_control.subscribe((res) => {
             switch (res.type) {
@@ -118,7 +138,6 @@ class Spectrogram {
         if (!this.wrapper) {
             const wrapper = document.createElement('spectrogram');
             this.wrapper = this.container.appendChild(wrapper);
-
             style(this.container, {
                 display: 'block',
                 position: 'relative',
@@ -144,50 +163,67 @@ class Spectrogram {
 
     createCanvas() {
         const canvasEle = document.createElement('canvas');
-        this.spectrogramCanvas = this.wrapper.appendChild(canvasEle);
-        this.spectrogramCtx = this.spectrogramCanvas.getContext('2d', {
-            preserveDrawingBuffer: true,
-            desynchronized: true
-        });
-        this.spectrogramCtx.imageSmoothingEnabled = true;
-        style(this.spectrogramCanvas, {
-            position: 'absolute',
-            zIndex: 4,
-            left: 0,
-        });
+        if (!this.offscreenCanvasSupport) {
+            canvasEle.setAttribute("id", this.canvas_id);
+            this.spectrogramCanvas = this.wrapper.appendChild(canvasEle);
+            this.spectrogramCtx = this.spectrogramCanvas.getContext('2d', {
+                preserveDrawingBuffer: true,
+                desynchronized: true
+            });
+            this.spectrogramCtx.imageSmoothingEnabled = true;
+            style(this.spectrogramCanvas, {
+                position: 'absolute',
+                zIndex: 4,
+                left: 0,
+            });
+        }
     }
 
     renderSpectrogram() {
+        if (this.offscreenCanvas !== null) {
+            this.container.removeChild(this.wrapper);
+            this.wrapper = null;
+            this.createWrapper();
+            this.createCanvas();
+        }
+        if (this.offscreenCanvasSupport) {
+            this.spectrogramCanvas = document.createElement('canvas');
+            this.wrapper.appendChild(this.spectrogramCanvas);
+            this.spectrogramCanvas.width = this.width;
+            this.spectrogramCanvas.height = this.height;
+        }
+        this.calculateSpectrogramFrequency();
+    }
+
+    calculateSpectrogramFrequency() {
         const canvasWidth = this.drawer.mainWave_wrapper.scrollWidth - this.maxCanvasElementWidth * 0;
         this.spectrogramCanvas.width = canvasWidth * this.pixelRatio;
         this.spectrogramCanvas.height = (this.height + 1) * this.pixelRatio;
-        this.spectrogramCanvas.style.width = canvasWidth;
+        this.spectrogramCanvas.style.width = canvasWidth; //irrelevant
         this.width = this.drawer.width;
         //TODO add loadFrequenciesData() by fetching them via url ?
-
-        this.worker.postMessage({
-            type: 'ww_getFrequencies',
-            data: {
-                fftSamples: this.fftSamples,
-                buffer: {
-                    channelData: this.web_audio.filteredBuffer.getChannelData(0),
-                    length: this.web_audio.filteredBuffer.length,
-                    sampleRate: this.web_audio.filteredBuffer.sampleRate
-                },
-                noverlap: this.noverlap,
-                width: this.spectrogramCanvas.width,
-                windowFunc: this.windowFunc,
-                alpha: this.alpha,
-                // FFT_Blob: URL.createObjectURL(new Blob([FFT]))
-            }
-        });
-        this.worker.onmessage = (event) => this.drawSpectrogram(event.data, this);
+        if (this.web_audio.filteredBuffer !== null) {
+            this.m3dAudio.worker.postMessage({
+                type: 'ww_getFrequencies',
+                data: {
+                    fftSamples: this.fftSamples,
+                    buffer: {
+                        channelData: this.web_audio.filteredBuffer.getChannelData(0),
+                        length: this.web_audio.filteredBuffer.length, //TODO: optional to divide by 6 here
+                        sampleRate: this.web_audio.filteredBuffer.sampleRate //TODO: optional to divide by 6 here
+                    },
+                    noverlap: this.noverlap,
+                    width: this.drawer.width,
+                    windowFunc: this.windowFunc,
+                    alpha: this.alpha,
+                }
+            });
+            this.m3dAudio.worker.onmessage = (event) => this.drawSpectrogram(event.data, this);
+        }
     }
 
     drawSpectrogram(frequenciesData, my) {
-        const height = my.height;
-
-        this.worker.postMessage({
+        this.m3dAudio.worker.postMessage({
             type: 'ww_resample',
             data: {
                 oldMatrix: frequenciesData,
@@ -197,7 +233,7 @@ class Spectrogram {
             }
         });
 
-        this.worker.onmessage = (event) => {
+        this.m3dAudio.worker.onmessage = (event) => {
             // console.log(window.indexedDB)
             //  window.indexedDB = window.indexedDB; // || window.mozIndexedDB ||    window.webkitIndexedDB || window.msIndexedDB;
 
@@ -219,7 +255,7 @@ class Spectrogram {
 
                             for (var i in employeeData) {
                                 objectStore.add(employeeData[i]);
-                            }*/
+                            }
 
 
             /*    var request = db.transaction(["employee"], "readwrite")
@@ -232,32 +268,65 @@ class Spectrogram {
 
                 request.onerror = function(event) {
                     alert("Unable to add data\r\nKenny is aready exist in your database! ");
-                }*/
+                }
             // }
 
             //prefixes of window.IDB objects
-            /*  window.IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction;
+              window.IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction;
               window.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.msIDBKeyRange*/
 
-
             requestAnimationFrame(() => {
-                const pixels = event.data
-                const heightFactor = my.buffer ? 2 / my.buffer.numberOfChannels : 1;
-                let i;
-                let j;
-                for (i = 0; i < pixels.length; i++) { //O(n^2)
-                    for (j = 0; j < pixels[i].length; j++) {
-                        my.spectrogramCtx.beginPath();
-                        my.spectrogramCtx.fillStyle = pixels[i][j];
-                        my.spectrogramCtx.fillRect(i, height - j * heightFactor, 1, heightFactor);
-                        my.spectrogramCtx.fill();
+                const pixels = event.data;
+                /* //og code
+                    const height = my.height;
+                 const heightFactor = my.buffer ? 2 / my.buffer.numberOfChannels : 1;
+                    for (let i = 0; i < pixels.length; i++) { //O(n^2) runtime
+                        for (let j = 0; j < pixels[i].length; j++) {
+                            my.spectrogramCtx.beginPath();
+                            my.spectrogramCtx.fillStyle = pixels[i][j];
+                            my.spectrogramCtx.fillRect(i, height - j * heightFactor, 1, heightFactor);
+                            my.spectrogramCtx.fill();
+                        }
+                    }*/
+
+                if (this.offscreenCanvasSupport) {
+                    this.offscreenCanvas = this.spectrogramCanvas.transferControlToOffscreen();
+                    this.m3dAudio.worker.postMessage({
+                        type: 'ww_offscreen_spectrogram',
+                        data: {
+                            canvas: this.offscreenCanvas,
+                            offScreenHeight: this.height,
+                            offScreenWidth: this.width,
+                            pixels: event.data
+                        }
+                    }, [this.offscreenCanvas]);
+                    this.m3dAudio.worker.onmessage = (event) => {
+                        this.spectrogramCanvas = null;
+                    }
+                } else {
+                    if (this.wasm) {
+                        this.wasm.draw_spec(this.canvas_id, this.height, pixels);
+                    } else {
+                        const height = my.height;
+                        const heightFactor = my.buffer ? 2 / my.buffer.numberOfChannels : 1;
+                        for (let i = 0; i < pixels.length; i++) { //O(n^2) runtime
+                            for (let j = 0; j < pixels[i].length; j++) {
+                                my.spectrogramCtx.beginPath();
+                                my.spectrogramCtx.fillStyle = pixels[i][j];
+                                my.spectrogramCtx.fillRect(i, height - j * heightFactor, 1, heightFactor);
+                                my.spectrogramCtx.fill();
+                            }
+                        }
                     }
                 }
-            })
+            });
         };
     }
 
-    clearCanvas = () => this.spectrogramCtx.clearRect(0, 0, this.spectrogramCtx.canvas.width, this.spectrogramCtx.canvas.height);
+    clearCanvas = () => {
+        if (!this.offscreenCanvasSupport) this.spectrogramCtx.clearRect(0, 0, this.spectrogramCtx.canvas.width, this.spectrogramCtx.canvas.height);
+        else this.spectrogramCanvas = null;
+    };
 
     onScroll = () => this.wrapper.scrollLeft = this.drawer.mainWave_wrapper.scrollLeft;
 
@@ -265,7 +334,18 @@ class Spectrogram {
 
     hide = () => style(this.container, {display: 'none'});
 
-    destroy = () => this.container.removeChild(this.wrapper)
+    destroy = () => {
+        this.m3dAudio.worker.terminate();
+        this.container.removeChild(this.wrapper);
+    }
+
+    createFreqLabels() {
+        if (!isEmpty(this.spectrogramFreqLabels)) {
+            const s = new Spectrogram_FrequencyLabel({spectrogram: this, params: this.spectrogramFreqLabels});
+            s.createFreqLabels();
+            s.renderAxesLabels(); //suppose to be in a different function
+        }
+    }
 }
 
 /**

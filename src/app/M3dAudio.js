@@ -23,6 +23,9 @@ import {
 import Minimap_WaveWrapper from "./components/Minimap/Minimap_WaveWrapper";
 import Minimap_WaveCanvas from "./components/Minimap/Minimap_WaveCanvas";
 
+import worker from "./workers/worker.js";
+import WebWorker from "./workers/workerSetup";
+
 export const subjects = {
     /**
      * @title m3dAudio_state
@@ -73,6 +76,7 @@ export const subjects = {
 
 class M3dAudio {
     constructor() {
+
         //abstraction class aka web api
         this.wave_wrapper = null; //wave_wrapper class
         this.web_audio = null; //webaudio class
@@ -96,6 +100,7 @@ class M3dAudio {
         this.previousWidth = 0;
         this.responsive = false;
         this.mainWave_visibility = true;
+        this.worker = null;
     }
 
     create(params) {
@@ -119,6 +124,7 @@ class M3dAudio {
 
     instantiate(params) {
         //instantiations
+        this.worker = new WebWorker(worker);
         this.web_audio = new WebAudio();
         this.wave_wrapper = new WaveWrapper({
             m3dAudio: this,
@@ -149,7 +155,7 @@ class M3dAudio {
         subjects.webAudio_state.subscribe((i) => {
             this.web_audio_state = i;
             if (i === READY) { //make it to switch statement if there's other mechanism other than 'ready'
-                setTimeout(() => this.createPlugins(), 0); //create plugin when webaudiostate is ready;
+                setTimeout(() => this.createPlugins(), 100); //create plugin when webaudiostate is ready;
             }
             subjects.m3dAudio_state.next(i);
         });
@@ -190,6 +196,12 @@ class M3dAudio {
 
     createPlugins() {
         this.pluginsParam.map((plugin) => {
+            try {
+                const plugin_residue = document.querySelector(plugin.params.container_id);
+                if (plugin_residue !== null) plugin_residue.removeChild(plugin_residue.firstChild);
+            } catch (e) {
+
+            }
             switch (plugin.type) {
                 case TIMELINE:
                     const t = new WaveTimeline(plugin.params, this);
@@ -203,6 +215,7 @@ class M3dAudio {
                     break;
                 case MINIMAP:
                     const mini_wave = new Minimap_WaveWrapper({
+                        m3dAudio: this,
                         container_id: plugin.params.container_id,
                         height: plugin.params.height,
                         pixelRatio: this.pixelRatio,
@@ -216,19 +229,7 @@ class M3dAudio {
                     mini_wave.init();
                     mini_canvas.init();
                     mini_wave.addCanvases(mini_canvas);
-                    const nominalWidth = Math.round(this.getDuration() * this.minPxPerSec * this.pixelRatio);
-                    const parentWidth = mini_wave.getContainerWidth();
-                    let width = nominalWidth;
-                    let start = 0;
-                    let end = Math.max(start + parentWidth, width);
-                    if (this.fill && (!this.scroll || nominalWidth < parentWidth)) {
-                        width = parentWidth;
-                        start = 0;
-                        end = width;
-                    }
-                    let peaks = this.web_audio.getPeaks(width, start, end);
-                    mini_wave.setWidth(width);
-                    mini_wave.drawWave(peaks, 0, start, end);
+                    mini_wave.redrawMinimap();
                     this.plugins.set(plugin.params.container_id, mini_wave);
                     break;
             }
@@ -300,7 +301,6 @@ class M3dAudio {
             end = width;
         }
         let peaks = this.web_audio.getPeaks(width, start, end);
-
         //this is drawPeaks in ws
         /**
          *  drawPeaks() {
@@ -399,9 +399,9 @@ class M3dAudio {
     }
 
     destroy() {
-        this.plugins.get(this.wave_wrapper.container_id).destroy();
-        this.pluginsParam.map((e) => this.plugins.get(e.params.container_id).destroy())
         this.web_audio.destroy();
+        this.pluginsParam.map((e) => this.plugins.get(e.params.container_id).destroy())
+        this.plugins.get(this.wave_wrapper.container_id).destroy();
     }
 }
 
