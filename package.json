@@ -49,7 +49,7 @@
     "jest-canvas-snapshot-serializer": "^1.0.1",
     "jest-fetch-mock": "^3.0.1",
     "jsdom": "^16.0.0",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "rxjs": "^6.5.4",
     "selenium-webdriver": "^4.0.0-alpha.5",
     "web-audio-test-api": "^0.5.2",
