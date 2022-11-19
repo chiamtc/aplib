@@ -54,7 +54,7 @@
     "selenium-webdriver": "^4.0.0-alpha.5",
     "web-audio-test-api": "^0.5.2",
     "webpack": "^4.41.5",
-    "webpack-cli": "^3.3.10",
+    "webpack-cli": "^3.3.12",
     "webpack-dev-server": "^3.10.1"
   }
 }
